@@ -9,6 +9,7 @@ int main() {
         else {
             y++;
         }
+        int z = x+7;
     }
-    return x+y;
+    return z;
 }
