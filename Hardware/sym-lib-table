@@ -1,4 +1,4 @@
 (sym_lib_table
   (lib (name "Electroturn_Parts")(type "KiCad")(uri "${KIPRJMOD}/Electroturn_Parts.kicad_sym")(options "")(descr ""))
-  (lib (name "Teensy_Library")(type "Legacy")(uri "${KIPRJMOD}/teensy_library/teensy.lib")(options "")(descr ""))
+  (lib (name "Teensy_Library")(type "KiCad")(uri "${KIPRJMOD}/teensy_library/teensy.kicad_sym")(options "")(descr ""))
 )
