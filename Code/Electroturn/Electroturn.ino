@@ -1,3 +1,6 @@
+#include <AccelStepper.h>
+#include <MultiStepper.h>
+
 #include <QuadEncoder.h>
 
 // Declare spindle encoder
@@ -5,28 +8,34 @@
 // This encoder gives us 8000 counts per revolution
 QuadEncoder spindleEnc(1, 3, 2, 0);
 
+// Declare Z axis stepper
+AccelStepper zStepper(AccelStepper::DRIVER, 4, 6);
+
 void setup() {
   // Initialize spindle encoder
   spindleEnc.setInitConfig();
   spindleEnc.init();
+
+  pinMode(4, OUTPUT);
+
+  // Initialize Z stepper
+  zStepper.setMaxSpeed(10000.0);
+  zStepper.setAcceleration(500000.0);
   
   // Debugging: wait to give time to open serial monitor, then initialize serial console
   Serial.begin(9600);
+  delay(1000);
+  zStepper.move(200.0);
+  zStepper.run();
+  delay(1000);
 }
 
 void loop() {
-  // Simple encoder test code
-
   int currentSample = spindleEnc.read();
-  
-  // Roll over to 0 again after 8000 pulses (1 rev)
-  if (currentSample > 8000 || currentSample < -8000)
-  {
-    spindleEnc.write(0);
-  }
 
-  // Print count
-  Serial.print("Encoder = ");
-  Serial.println(currentSample);
-  delay(50);
+  // Convert encoder steps to motor movement steps
+  float motorSteps = ((float)currentSample/8000.0)*2000.0;
+
+  zStepper.moveTo(motorSteps);
+  zStepper.run();
 }
