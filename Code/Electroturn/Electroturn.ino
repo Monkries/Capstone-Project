@@ -14,6 +14,7 @@ AccelStepper zStepper(AccelStepper::DRIVER, 4, 6);
 // Spindle encoder data variables
 int spindleEnc_sample;
 int spindleEnc_sinceLastSpeedComputation;
+int mode;
 
 // Time between each iteration of the main loop
 elapsedMicros microsSinceSample;
@@ -38,7 +39,7 @@ void setup() {
   delay(1000);
 }
 
-void loop() {
+void data() {
   // Get encoder movement since last sample, store in variable, immediately write encoder to 0
   spindleEnc_sample = spindleEnc.read();
   spindleEnc.write(0);
@@ -64,12 +65,37 @@ void loop() {
     Serial.print("Spindle RPM: ");
     Serial.println(spindleRPM);
   }
-
-  // If in Z power feed mode:
-  // Check that zStepper.distanceToGo() is within acceptable margin (to make sure stepper isn't lagging way behind encoder)
-  // Compute stepper movement from encoder movement
-  // Call zStepper.moveTo()
-
-  // If in threading mode:
-  // ??
 }
+
+  void control() {
+    // Get control panel data?
+  }
+
+  int main () {
+    // Setup microcontroller pins and get initial readings from encoder and control panel
+    setup();
+    data();
+    control();
+
+    // Default/reset mode
+    mode = 0;
+    switch (mode) {
+
+        // Power Feed 
+        case '1' : 
+            // Check that zStepper.distanceToGo() is within acceptable margin (to make sure stepper isn't lagging way behind encoder)
+            // Compute stepper movement from encoder movement
+            // Call zStepper.moveTo()
+        break;
+        // Threading
+        case '2':
+          // Move stepper motor x in sync with the spindle
+        break;
+        // Do nothing with no mode selected/reset hit on control panel
+        default: 
+          for();
+          break;
+          
+      // Place holder for other things to do?
+    }
+  }
