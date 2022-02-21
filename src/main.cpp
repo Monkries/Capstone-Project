@@ -7,6 +7,8 @@
 // System Configuration Info
 const float encoderPulleyMultiplier = 1.0; // e.g. if the encoder runs at 2X spindle speed, make this 2
 const unsigned int encoderTicksPerRev = 8000;
+const unsigned int stepsPerRev = 2000;
+const unsigned int leadscrewTpi = 20; //1/4-20TPI leadscrew in our case
 
 // Declare spindle encoder
 // Hardware quadrature channel 1, phase A pin 3, phase B pin 2
@@ -35,36 +37,29 @@ void setup()
 void loop()
 {
   // Temporary code to test RPM measurement
-  spindleTach.recordTicks(spindleEnc.read());
+  int sampledEncTicks = spindleEnc.read();
+  spindleTach.recordTicks(sampledEncTicks);
   spindleEnc.write(0);
   delay(75);
   Serial.println(spindleTach.getRPM());
 
-  /*
-  Basic framework of real code (commented out temporarily so this will build)
-
   // Default/reset mode
-  mode = 0;
+  int mode = 0;
   switch (mode)
   {
-
   // Power Feed
-  case '1':
-    // Check that zStepper.distanceToGo() is within acceptable margin (to make sure stepper isn't lagging way behind encoder)
-    // Compute stepper movement from encoder movement
-    // Call zStepper.moveTo()
+  case 0:
+    float desiredPitch = 1; // example: cut 13tpi thread
+    float stepsPerEncoderTick = (1/encoderTicksPerRev)*(1/desiredPitch)*(leadscrewTpi)*(stepsPerRev);
+    int steps = (int)round(stepsPerEncoderTick*sampledEncTicks);
+    zStepper.move(steps);
     break;
-  // Threading
-  case '2':
+  // Traditional Threading (using thread dial)
+  case 1:
     // Move stepper motor x in sync with the spindle
     break;
-  // Do nothing with no mode selected/reset hit on control panel
-  default:
-    for ()
-      ;
+  // "Hardinge" Threading
+  case 2:
     break;
-
-    // Place holder for other things to do?
   }
-  */
 }
