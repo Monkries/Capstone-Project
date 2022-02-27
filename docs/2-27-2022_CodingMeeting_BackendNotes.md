@@ -51,3 +51,21 @@ From meeting on 2-27 with Karson and Hampton
   cPanel.displayRPM(ELS.getSpindleRPM());
 
   ```
+  
+ 
+  Notes on sync handling:
+  
+  ```c++
+  
+  // Measure leadscrew position as an angle from 0 to 2000 steps per revolution
+  // Whenever feed is disengaged, call that leadscrew position 0
+  // Continuously keep track of hypothetical leadscrew position relative to 0
+  // When feed is re-engaged, wait until hypothetical leadscrew position matches 0 position, then start motor
+  
+  int hypotheticalLeadscrewPosition; // measured in motor steps, relative to real leadscrew position (our zero point)
+  int zFeedDirection; // 0=off, 1=right, -1=left
+  int zFeedDirection_previousCycle; // Same variable as above, but value from 1 cycle before
+  
+  bool waitingForClutch;
+  
+  ```
