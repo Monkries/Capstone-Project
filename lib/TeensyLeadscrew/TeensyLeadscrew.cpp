@@ -17,7 +17,7 @@ TeensyLeadscrew::TeensyLeadscrew(QuadEncoder arg_spindleEncoder, unsigned int ti
         cfg_leadscrewPitchUnits = leadscrewPitch_units;
 }
 
-void TeensyLeadscrew::cycle() {
+int TeensyLeadscrew::cycle() {
     // Define major variables
     int encoderTicks;
     int stepsToMove;
@@ -80,4 +80,17 @@ void TeensyLeadscrew::cycle() {
 
 
     // Tell stepper to move
+    return stepsToMove;
+}
+
+float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
+    float ratio;    // Gear ratio
+    float num;      // Numerator
+    float denum;    // Denominator
+    
+    num = cfg_leadscrewPitch * cfg_stepsPerRev;     // Leadscrew pitch times the steps per revolution
+    denum = cfg_encTicksPerRev * gearbox_pitch;     // Encoder ticks per revolution times the thread pitch either Imperial or Metric
+    ratio = encoderTicks * (num / denum);           // The ratio is equal to the encoder ticks times the numerator/denominator
+    
+    return ratio;
 }

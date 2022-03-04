@@ -22,7 +22,7 @@ class TeensyLeadscrew {
     void engageZFeedRight();
     void disengageZFeed();
 
-    void cycle();
+    int cycle();
 
     void getSpindleRPM();
 
@@ -52,7 +52,7 @@ class TeensyLeadscrew {
     int zFeedDirection_previousCycle; // Same variable as above, but value from 1 cycle before
     bool waitingForClutch;
 
-    int calculateMotorSteps(int encoderTicks); // Given encoder movement (and gearbox settings configured elsewhere) find number of steps to move, INDEPENDENT OF DIRECTION
+    float calculateMotorSteps(int encoderTicks); // Given encoder movement (and gearbox settings configured elsewhere) find number of steps to move, INDEPENDENT OF DIRECTION
 
 }
 
