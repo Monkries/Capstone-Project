@@ -12,6 +12,9 @@ EncoderTach::EncoderTach(unsigned int samplePeriod_micros, unsigned int encoderT
     _ticksSinceLastSample = 0;
 }
 
+// Default constructor, which does nothing
+EncoderTach::EncoderTach(){};
+
 void EncoderTach::recordTicks(int encoderTicks)
 {
     // Store the movement (on top of any accumulated movement since the last RPM computation)

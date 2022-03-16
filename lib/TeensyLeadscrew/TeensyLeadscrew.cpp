@@ -1,24 +1,56 @@
 #include "Arduino.h"
 #include "AccelStepper.h"
 #include "QuadEncoder.h"
+#include "EncoderTach.h"
 #include "TeensyLeadscrew.h"
 
-TeensyLeadscrew::TeensyLeadscrew(QuadEncoder arg_spindleEncoder, AccelStepper arg_zStepper, LatheHardwareInfo arg_sysInfo) {
-        // Store the stepper and encoder objects
-        spindleEncoder = arg_spindleEncoder;
-        zStepper = arg_zStepper;
+
+TeensyLeadscrew::TeensyLeadscrew(QuadEncoder &arg_spindleEncoder,
+AccelStepper &arg_zStepper,
+LatheHardwareInfo arg_sysInfo,
+unsigned int tachometerSamplePeriod_micros) :
+spindleEncoder(arg_spindleEncoder), // This is reference stuff, which sets spindleEncoder to arg_spindleEncoder
+zStepper(arg_zStepper) // Same as above. If you don't have this, it tries to copy the motor/encoder objects and hangs the whole teensy
+{
         // Store hardware specs
         sysInfo = arg_sysInfo;
 }
 
-int TeensyLeadscrew::cycle() {
+void TeensyLeadscrew::init() {
+    spindleTach = EncoderTach(100, sysInfo.encoderTicksPerRev, sysInfo.encoderPulleyMultiplier);
+}
+
+// Z Feed "Lever" Control (modeled after HLV-H leadscrew clutch lever)
+
+void TeensyLeadscrew::disengageZFeed() {
+    zFeedDirection = 0;
+}
+
+void TeensyLeadscrew::engageZFeedLeft() {
+    zFeedDirection = 1;
+}
+
+void TeensyLeadscrew::engageZFeedRight() {
+    zFeedDirection = -1;
+}
+
+// Handles one "cycle" of actual leadscrew movement
+// Reads the encoder object stored in the class, and moves the stepper motor accordingly
+// Call as often as possible
+void TeensyLeadscrew::cycle() {
     // Define major variables
     int encoderTicks;
     int stepsToMove;
 
     // Read encoder movement since last cycle
     encoderTicks = spindleEncoder.read();
+    // Then re-zero encoder
+    spindleEncoder.write(0);
     // Cycle RPM calculator
+    spindleTach.recordTicks(encoderTicks);
+
+    /*
+    
     // Look at feed lever and gearbox config, and determine stepper movement (if any)
     
     // If the feed lever is in center neutral position
@@ -32,8 +64,8 @@ int TeensyLeadscrew::cycle() {
         // Calculate hypothetical position
         hypotheticalLeadscrewPosition += calculateMotorSteps(encoderTicks);
         // Handle zero rollover (this is an angle in steps)
-        if (hypotheticalLeadscrewPosition >= sys_stepsPerRev) {
-            hypotheticalLeadscrewPosition -= sys_stepsPerRev;
+        if (hypotheticalLeadscrewPosition >= (int)sysInfo.stepsPerRev) {
+            hypotheticalLeadscrewPosition -= (int)sysInfo.stepsPerRev;
         }
     }
     else if (zFeedDirection == 1) {
@@ -69,14 +101,65 @@ int TeensyLeadscrew::cycle() {
         }
     }
 
-    // Store this cycle's feed direction
+    // Store this cycle's feed direction (so we can check for state change on next cycle)
     zFeedDirection_previousCycle = zFeedDirection;
 
+    */
 
     // Tell stepper to move
-    return stepsToMove;
+    //Serial.print("Steps to move: ");
+    //Serial.println(stepsToMove);
+    zStepper.move(encoderTicks);
+    zStepper.run();
 }
 
+// Given the class's current gearbox config
+// and the number of spindle encoder ticks on this cycle,
+// find the number of motor steps the leadscrew should move, ignoring any clutch action
 float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
-    return 0;
+    /*
+    Math Example: Cutting a 13TPI thread on a 20TPI leadscrew
+
+    (Encoder Counts) | 1 spindle rev | 1in cutter movement | 20 leadscrew revs | 200 steps
+    ---------------------------------------------------------------------------------------------
+                     | 1000 counts   | 13 spindle revs     | 1 in. tool travel | 1 leadscrew rev
+
+    For good coding structure, we split the math HERE -----^
+
+    1. Find desired cutter movement, in inches
+    2. Use cutter movement to calculate leadscrew rotation, in steps
+    */
+
+    // So first, we'll find the desired cutter movement (in inches)
+    float cutterMovement_inches;
+    // If we're working in TPI
+    if (gearbox_pitch.units == tpi) {
+        cutterMovement_inches = (encoderTicks) * (1/sysInfo.encoderTicksPerRev) * (1/gearbox_pitch.value);
+    }
+    else if (gearbox_pitch.units == in_per_rev) {
+        cutterMovement_inches = 0; // TODO
+    }
+    else if (gearbox_pitch.units == mm) {
+        cutterMovement_inches = 0; // TODO
+    }
+
+    // Now go from cutter movement to leadscrew motor steps
+    float stepsToMove;
+    
+    // If the leadscrew is imperial
+    if (sysInfo.leadscrewPitch.units == tpi) {
+        stepsToMove = cutterMovement_inches * (sysInfo.leadscrewPitch.value) * (sysInfo.stepsPerRev);
+    }
+    // If the leadscrew is metric
+    else if (sysInfo.leadscrewPitch.units == mm) { 
+        stepsToMove = 0; //TODO
+    }
+    // If the leadscrew is being given in inches-per-revolution, which shouldn't ever happen
+    else {
+        // Just in case leadscrewPitch.units gets set to in_per_rev (which is nonsense),
+        // then do nothing (because clearly something's not right)
+        return 0;
+    }
+
+    return stepsToMove; // TODO: Handle direction
 }

@@ -6,6 +6,7 @@
 class EncoderTach {
     public:
     EncoderTach(unsigned int samplePeriod_micros, unsigned int encoderTicksPerRev, float pulleyMultiplier);
+    EncoderTach();
     void recordTicks(int encoderTicks);
     float getRPM();
 
