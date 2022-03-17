@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <Wire.h>
+#include <SPI.h>
 #include <AccelStepper.h>
 #include <MultiStepper.h>
 #include <QuadEncoder.h> // Teensy hardware quadrature decoder library
