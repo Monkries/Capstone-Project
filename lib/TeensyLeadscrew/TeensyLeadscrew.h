@@ -76,6 +76,8 @@ class TeensyLeadscrew {
     int zFeedDirection_previousCycle; // Still 0=neutral, 1=left, -1=right, but value from 1 cycle before
     bool waitingForClutch;
 
+    float stepsToMove_accumulator; // Used to keep track of fractional steps between leadscrew cycles
+
     float calculateMotorSteps(int encoderTicks); // Given encoder movement (and gearbox settings configured elsewhere) find number of steps to move, INDEPENDENT OF DIRECTION
 
 };

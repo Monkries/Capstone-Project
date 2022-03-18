@@ -40,7 +40,7 @@ void TeensyLeadscrew::engageZFeedRight() {
 void TeensyLeadscrew::cycle() {
     // Define major variables
     int encoderTicks;
-    int stepsToMove;
+    float stepsToMoveNow;
 
     // Read encoder movement since last cycle
     encoderTicks = spindleEncoder.read();
@@ -48,8 +48,6 @@ void TeensyLeadscrew::cycle() {
     spindleEncoder.write(0);
     // Cycle RPM calculator
     spindleTach.recordTicks(encoderTicks);
-
-    /*
     
     // Look at feed lever and gearbox config, and determine stepper movement (if any)
     
@@ -81,7 +79,7 @@ void TeensyLeadscrew::cycle() {
 
         if (!waitingForClutch) {
             // Movement Calculation
-            stepsToMove = calculateMotorSteps(encoderTicks)*zFeedDirection;
+            stepsToMoveNow = calculateMotorSteps(encoderTicks)*(float)zFeedDirection;
         }
     }
     else if (zFeedDirection == -1) {
@@ -97,19 +95,19 @@ void TeensyLeadscrew::cycle() {
 
         if (!waitingForClutch) {
             // Movement Calculation
-            stepsToMove = calculateMotorSteps(encoderTicks)*zFeedDirection;
+            stepsToMoveNow = calculateMotorSteps(encoderTicks)*(float)zFeedDirection;
         }
     }
 
     // Store this cycle's feed direction (so we can check for state change on next cycle)
     zFeedDirection_previousCycle = zFeedDirection;
 
-    */
+    // Deal with fractional "remainder" steps
+    stepsToMoveNow = stepsToMove_accumulator + stepsToMoveNow; // Bring in remainder steps from previous cycles
+    stepsToMove_accumulator = stepsToMoveNow - floor(stepsToMoveNow); // Shave "remainder steps" off this number, for later cycles
+    stepsToMoveNow = floor(stepsToMoveNow); // Now permanently store this, so we can move an integer number of steps
 
-    // Tell stepper to move
-    //Serial.print("Steps to move: ");
-    //Serial.println(stepsToMove);
-    zStepper.move(encoderTicks);
+    zStepper.move(stepsToMoveNow + zStepper.distanceToGo());
     zStepper.run();
 }
 
@@ -134,7 +132,17 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     float cutterMovement_inches;
     // If we're working in TPI
     if (gearbox_pitch.units == tpi) {
-        cutterMovement_inches = (encoderTicks) * (1/sysInfo.encoderTicksPerRev) * (1/gearbox_pitch.value);
+        cutterMovement_inches = ((float)encoderTicks) * (1/(float)sysInfo.encoderTicksPerRev) * (1/gearbox_pitch.value); // TODO: pulley multiplier needed?
+        
+        if (false) {
+        Serial.print("encoderTicks = ");
+        Serial.println(encoderTicks);
+        Serial.print("encoderTicksPerRev = ");
+        Serial.println(sysInfo.encoderTicksPerRev);
+        Serial.print("gearbox_pitch.value = ");
+        Serial.println(gearbox_pitch.value);
+        }
+
     }
     else if (gearbox_pitch.units == in_per_rev) {
         cutterMovement_inches = 0; // TODO
@@ -148,7 +156,7 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     
     // If the leadscrew is imperial
     if (sysInfo.leadscrewPitch.units == tpi) {
-        stepsToMove = cutterMovement_inches * (sysInfo.leadscrewPitch.value) * (sysInfo.stepsPerRev);
+        stepsToMove = cutterMovement_inches * (sysInfo.leadscrewPitch.value) * ((float)sysInfo.stepsPerRev);
     }
     // If the leadscrew is metric
     else if (sysInfo.leadscrewPitch.units == mm) { 
@@ -161,5 +169,9 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
         return 0;
     }
 
+    if (stepsToMove != 0) {
+        Serial.print("stepsToMove = ");
+        Serial.println(stepsToMove);
+    }
     return stepsToMove; // TODO: Handle direction
 }

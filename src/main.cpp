@@ -47,8 +47,8 @@ void setup()
   pinMode(13, OUTPUT);
   
   // Initialize Z stepper
-  zStepper.setMaxSpeed(10000.0);
-  zStepper.setAcceleration(5000.0);
+  zStepper.setMaxSpeed(100000.0);
+  zStepper.setAcceleration(500000.0);
 
   els.init();
 
