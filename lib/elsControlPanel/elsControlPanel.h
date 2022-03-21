@@ -27,7 +27,7 @@ class elsControlPanel {
 
         // Hardware Objects
         Adafruit_AlphaNum4 rpmReadout;
-        uint8_t rpmReadouti2cAddress;
+        uint8_t rpmReadouti2cAddress; // this defaults to 0x70 (per Adafruit) but we allow the user to set a custom one on class creation if they prefer
         Adafruit_ILI9341 &tft; // This object gets created outside the class, then passed in (so we don't have to deal with all the pin assignments)
 };
 #endif

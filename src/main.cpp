@@ -42,7 +42,7 @@ TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 100);
 // MISO -> 12
 // MOSI -> 11
 // LCD_CS -> 10
-// SD_CS -> n/a
+// SD_CS -> n/c
 // RESET -> 15
 // D/C -> 14
 Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
