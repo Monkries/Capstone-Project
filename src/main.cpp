@@ -7,6 +7,8 @@
 // "In-House" Libraries
 #include <EncoderTach.h> // Our encoder RPM helper library
 #include <TeensyLeadscrew.h> // Our main "virtual gearbox" backend lib
+#include <elsDisplay.h>
+
 
 // Debugging stuff
 /*
@@ -32,6 +34,9 @@ AccelStepper zStepper(AccelStepper::DRIVER, 4, 6);
 
 // Backend Electronic Leadscrew "Gearbox" lib setup
 TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 100);
+
+// Control panel object setup
+elsDisplay cpanel(); // TODO: add pins for everything
 
 void setup()
 {
@@ -61,4 +66,5 @@ void setup()
 void loop()
 {
   els.cycle();
+  
 }
