@@ -26,7 +26,7 @@ class elsControlPanel {
         // TODO: function to return a struct with states of all the buttons since we last checked
 
         // Hardware Objects
-        Adafruit_AlphaNum4 rpmReadout;
+        Adafruit_7segment rpmReadout;
         uint8_t rpmReadouti2cAddress; // this defaults to 0x70 (per Adafruit) but we allow the user to set a custom one on class creation if they prefer
         Adafruit_ILI9341 &tft; // This object gets created outside the class, then passed in (so we don't have to deal with all the pin assignments)
 };

@@ -19,7 +19,6 @@ void elsControlPanel::init() {
 
 // button1text controls units, button2text controls hardinge threading, button3text controls nothing currently
 void elsControlPanel::TFT_writeGearboxInfo(String mode, Pitch currentPitch, String button1text, String button2text, String button3text) {
-    Adafruit_ILI9341 tft = Adafruit_ILI9341(10, 14, 11, 13, -1, 12);
      tft.fillScreen(ILI9341_WHITE);
      tft.setCursor(0, 0);
      tft.setTextColor(ILI9341_BLACK);
@@ -78,23 +77,17 @@ void elsControlPanel::TFT_writeGearboxInfo(String mode, Pitch currentPitch, Stri
 
 }
 
-void alphanum_writeRPM(unsigned int rpm) {
-    Adafruit_7segment numdisplay = Adafruit_7segment();
-
-    //Write Digit x with number
-    numdisplay.print(250, DEC);
-    numdisplay.writeDisplay();
+void elsControlPanel::alphanum_writeRPM(unsigned int rpm) {
+    
+    rpmReadout.print(250, 10);
+    rpmReadout.writeDisplay();
     delay(2000);
-    numdisplay.writeDigitNum(0,1);
-    numdisplay.writeDigitNum(1,1);
-    numdisplay.writeDigitNum(2,1);
-    numdisplay.writeDigitNum(3,1);
-    numdisplay.writeDisplay();
+    rpmReadout.print(9999, 10);
+    rpmReadout.writeDisplay();
     delay(2000);
-    numdisplay.writeDigitNum(0,5);
-    numdisplay.writeDigitNum(1,2);
-    numdisplay.writeDigitNum(2,9);
-    numdisplay.writeDigitNum(3,6);
-    numdisplay.writeDisplay();
+    rpmReadout.print(0022, 10);
+    rpmReadout.writeDisplay();
+    delay(2000);
+    rpmReadout.print(rpm, 10);
 
 }
