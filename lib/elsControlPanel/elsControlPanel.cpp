@@ -19,6 +19,8 @@ void elsControlPanel::init() {
 
 // button1text controls units, button2text controls hardinge threading, button3text controls nothing currently
 void elsControlPanel::TFT_writeGearboxInfo(String mode, Pitch currentPitch, String button1text, String button2text, String button3text) {
+     tft.fillScreen(ILI9341_BLACK);
+     delay(2000);
      tft.fillScreen(ILI9341_WHITE);
      tft.setCursor(0, 0);
      tft.setTextColor(ILI9341_BLACK);
@@ -89,5 +91,7 @@ void elsControlPanel::alphanum_writeRPM(unsigned int rpm) {
     rpmReadout.writeDisplay();
     delay(2000);
     rpmReadout.print(rpm, 10);
+
+    
 
 }

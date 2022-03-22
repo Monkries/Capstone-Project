@@ -64,7 +64,15 @@ void setup()
   spindleEnc.setInitConfig();
   spindleEnc.init();
 
-  pinMode(4, OUTPUT); // TODO: do we need this?
+  // Setup pins for the teensy
+  pinMode(10, OUTPUT);
+  pinMode(11, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(13, OUTPUT);
+  pinMode(14, OUTPUT);
+  pinMode(15, OUTPUT);
+  pinMode(18, OUTPUT);
+  pinMode(19, OUTPUT);
   
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
@@ -84,6 +92,12 @@ void setup()
 
 void loop()
 {
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(1000);
+
+  cPanel.TFT_writeGearboxInfo("Power Feed", els.gearbox_pitch, "tpi", "Rapid Left", "hello");
   unsigned int rpm = 2000;
   cPanel.alphanum_writeRPM(rpm);
   //els.cycle();
@@ -97,5 +111,5 @@ void loop()
     cPanel.alphanum_writeRPM(rpm);
   }
   cPanel.alphanum_writeRPM(rpm);
-  cPanel.TFT_writeGearboxInfo("Power Feed", els.gearbox_pitch, "tpi", "Rapid Left", "hello");
+  
 }
