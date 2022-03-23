@@ -132,7 +132,7 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     float cutterMovement_inches;
     // If we're working in TPI
     if (gearbox_pitch.units == tpi) {
-        cutterMovement_inches = ((float)encoderTicks) * (1/(float)sysInfo.encoderTicksPerRev) * (1/gearbox_pitch.value); // TODO: pulley multiplier needed?
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderPulleyMultiplier) * (1./(float)sysInfo.encoderTicksPerRev) * (1./gearbox_pitch.value); // TODO: pulley multiplier needed?
         
         if (false) {
         Serial.print("encoderTicks = ");
