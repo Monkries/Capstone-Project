@@ -132,23 +132,13 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     float cutterMovement_inches;
     // If we're working in TPI
     if (gearbox_pitch.units == tpi) {
-        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderPulleyMultiplier) * (1./(float)sysInfo.encoderTicksPerRev) * (1./gearbox_pitch.value); // TODO: pulley multiplier needed?
-        
-        if (false) {
-        Serial.print("encoderTicks = ");
-        Serial.println(encoderTicks);
-        Serial.print("encoderTicksPerRev = ");
-        Serial.println(sysInfo.encoderTicksPerRev);
-        Serial.print("gearbox_pitch.value = ");
-        Serial.println(gearbox_pitch.value);
-        }
-
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderPulleyMultiplier) * (1./(float)sysInfo.encoderTicksPerRev) * (1./gearbox_pitch.value);
     }
     else if (gearbox_pitch.units == in_per_rev) {
-        cutterMovement_inches = 0; // TODO
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox_pitch.value);
     }
     else if (gearbox_pitch.units == mm) {
-        cutterMovement_inches = 0; // TODO
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox_pitch.value) * (1./25.4);
     }
 
     // Now go from cutter movement to leadscrew motor steps
@@ -160,7 +150,7 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     }
     // If the leadscrew is metric
     else if (sysInfo.leadscrewPitch.units == mm) { 
-        stepsToMove = 0; //TODO
+        stepsToMove = cutterMovement_inches * (25.4) * (1./sysInfo.leadscrewPitch.value) * ((float)sysInfo.stepsPerRev);
     }
     // If the leadscrew is being given in inches-per-revolution, which shouldn't ever happen
     else {
