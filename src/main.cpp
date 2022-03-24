@@ -1,6 +1,6 @@
 
 #include <Arduino.h>
-//#include <Wire.h>
+#include <Wire.h>
 #include <SPI.h>
 #include <AccelStepper.h>
 #include <MultiStepper.h>
@@ -9,11 +9,12 @@
 #include <EncoderTach.h> // Our encoder RPM helper library
 #include <TeensyLeadscrew.h> // Our main "virtual gearbox" backend lib
 #include <elsControlPanel.h>
+#include "Adafruit_LEDBackpack.h"
 // I2C Libraries
-#include "i2c_driver.h"
-#include "i2c_register_slave.h"
-#include "i2c_device.h"
-#include "imx_rt1060/imx_rt1060_i2c_driver.h"
+// #include "i2c_driver.h"
+// #include "i2c_register_slave.h"
+// #include "i2c_device.h"
+// #include "imx_rt1060/imx_rt1060_i2c_driver.h"
 //#include "i2c_driver_wire.h"
 
 // Debugging stuff
@@ -62,9 +63,9 @@ Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 elsControlPanel cPanel(tftObject);
 
   // Setup master-slave for Alphanumeric
-  I2CMaster& master = Master; 
-  const uint8_t slave_address = 0x70;
-  I2CDevice sensor = I2CDevice(master, slave_address, __ORDER_BIG_ENDIAN__ );
+  // I2CMaster& master = Master; 
+  // const uint8_t slave_address = 0x70;
+  // I2CDevice sensor = I2CDevice(master, slave_address, __ORDER_BIG_ENDIAN__ );
 
 // Setup function
 void setup()
@@ -82,11 +83,7 @@ void setup()
   pinMode(15, OUTPUT);
   pinMode(17, OUTPUT);
   pinMode(16, OUTPUT);
-  
-  // Initalize Master
-  master.begin(400 * 1000U);
-  Serial.begin(9600);
-  
+ 
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
   zStepper.setAcceleration(500000.0);
@@ -105,42 +102,41 @@ void setup()
 
 void loop()
 {
-  unsigned int rpm = 2000;
-  byte val = cPanel.alphanum_writeRPM(rpm);
-  sensor.write(1, val, true);
-  // Wire.beginTransmission(address);
-  // unsigned int &test = cPanel.alphanum_writeRPM(rpm);
+  // Code for blinking LED on Teensy
   // digitalWrite(LED_BUILTIN, HIGH);
   // delay(1000);
   // digitalWrite(LED_BUILTIN, LOW);
   // delay(1000);
-  els.gearbox_pitch = {13, tpi, rightHandThread_feedLeft};
-  cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Left", "hello");
-  els.gearbox_pitch = {15.6, mm, rightHandThread_feedLeft};
-  delay(5000);
-  cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "mm", "Rapid Right", "hello");
-  delay(5000);
-  cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
-  delay(5000);
-  els.gearbox_pitch = {9, tpi, rightHandThread_feedLeft};
-  cPanel.TFT_writeGearboxInfo("Power Feed", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
-  els.gearbox_pitch = {8, mm, rightHandThread_feedLeft};
-  delay(5000);
-  cPanel.TFT_writeGearboxInfo("Power Feed", els.gearbox_pitch, "mm", "Rapid Off", "hello");
-  delay(5000);
 
-  //  Wire.write(val);
-  // cPanel.alphanum_writeRPM(rpm);
-  // //els.cycle();
-  // for (int i = 0; i <= 1; i++) {
-  //   cPanel.alphanum_writeRPM(rpm);
-  //   rpm = rpm + 3500;
-  //   cPanel.alphanum_writeRPM(rpm);
-  //   rpm = rpm - 4500;
-  //   cPanel.alphanum_writeRPM(rpm);
-  //   rpm = rpm - 1000;
-  //   cPanel.alphanum_writeRPM(rpm);
-  // }
-  // cPanel.alphanum_writeRPM(rpm);
-  // Wire.endTransmission();
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  //                                TFT Display test code                                  //
+  // els.gearbox_pitch = {13, tpi, rightHandThread_feedLeft};
+  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Left", "hello");
+  // els.gearbox_pitch = {15.6, mm, rightHandThread_feedLeft};
+  // delay(5000);
+  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "mm", "Rapid Right", "hello");
+  // delay(5000);
+  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
+  // delay(5000);
+  // els.gearbox_pitch = {9, tpi, rightHandThread_feedLeft};
+  // cPanel.TFT_writeGearboxInfo("Power Feed", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
+  // els.gearbox_pitch = {8, mm, rightHandThread_feedLeft};
+  // delay(5000);
+  // cPanel.TFT_writeGearboxInfo("Power Feed", els.gearbox_pitch, "mm", "Rapid Off", "hello");
+  // delay(5000);
+  //////////////////////////////////////////////////////////////////////////////////////////
+  els.cycle();
+
+  unsigned int rpm = 2222;
+  Wire.beginTransmission(0x70);
+  cPanel.alphanum_writeRPM(rpm);
+  cPanel.alphanum_writeRPM(rpm);
+  rpm = rpm + 3500;
+  cPanel.alphanum_writeRPM(rpm);
+  rpm = rpm - 4500;
+  cPanel.alphanum_writeRPM(rpm);
+  rpm = rpm - 1000;
+  cPanel.alphanum_writeRPM(rpm);
+  cPanel.alphanum_writeRPM(rpm);
+  Wire.endTransmission();
 }

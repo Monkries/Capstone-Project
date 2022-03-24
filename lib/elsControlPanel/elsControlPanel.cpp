@@ -15,7 +15,7 @@ tft(tftObject) // This weird syntax is required in order to pass in already-crea
 }
 
 void elsControlPanel::init() {
-    rpmReadout.begin(rpmReadouti2cAddress); // Initialize with whatever configured address (default is 0x70, per adafruit)
+    alpha4.begin(rpmReadouti2cAddress); // Initialize with whatever configured address (default is 0x70, per adafruit)
     tft.begin(100);
 }
 
@@ -92,23 +92,9 @@ void elsControlPanel::TFT_writeGearboxInfo(String mode, Pitch currentPitch, Stri
 
 }
 
-byte elsControlPanel::alphanum_writeRPM(unsigned int rpm) {
-    //rpmReadout.blinkRate(2);
-    rpmReadout.writeDigitRaw(0, 0x3fff);
-    rpmReadout.writeDisplay();
-    delay(2000);
-    // rpmReadout.println(9999, 10);
-    // rpmReadout.writeDisplay();
-    // delay(2000);
-    // rpmReadout.println(0022, 10);
-    // rpmReadout.writeDisplay();
-    // delay(2000);
-    // Wire.beginTransmission(0x70);
-    // Wire.write(rpm);
-    // rpmReadout.println(rpm, 10);
-    // rpmReadout.writeDisplay();
-    // Wire.endTransmission();
-    //return rpmReadout.blinkRate(2);
-    //return digitalWrite(18, rpm);
+void elsControlPanel::alphanum_writeRPM(unsigned int rpm) {
+    alpha4.writeDigitRaw(3, 0x0);
+    alpha4.writeDigitRaw(0, 0xffff);
+    alpha4.writeDisplay();
 
 }

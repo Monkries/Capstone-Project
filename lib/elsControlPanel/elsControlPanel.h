@@ -22,12 +22,12 @@ class elsControlPanel {
         // Main Utility Functions
         void TFT_writeGearboxInfo(String mode, Pitch currentPitch, String button1text, String button2text, String button3text);
         // Update the alphanumeric RPM display
-        byte alphanum_writeRPM(unsigned int rpm);
+        void alphanum_writeRPM(unsigned int rpm);
         void writeOverspeedLED(bool overspeed); // Call with "true" to illuminate overspeed LED
         // TODO: function to return a struct with states of all the buttons since we last checked
 
         // Hardware Objects
-        Adafruit_AlphaNum4 rpmReadout;
+        Adafruit_AlphaNum4 alpha4 = Adafruit_AlphaNum4();
         uint8_t rpmReadouti2cAddress; // this defaults to 0x70 (per Adafruit) but we allow the user to set a custom one on class creation if they prefer
         Adafruit_ILI9341 tft = Adafruit_ILI9341(9, 10); // This object gets created outside the class, then passed in (so we don't have to deal with all the pin assignments)
 };
