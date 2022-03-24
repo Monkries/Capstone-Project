@@ -27,6 +27,12 @@ struct Pitch {
     PitchDirection direction;
 };
 
+struct DogClutch {
+    float inputShaftAngle;
+    bool engaged;
+    bool locked;
+};
+
 // Necessary hardware specifications for any lathe outfitted with a TeensyLeadscrew
 struct LatheHardwareInfo {
     float encoderPulleyMultiplier; // e.g. if the encoder runs at 2X spindle speed, make this 2
@@ -70,15 +76,27 @@ class TeensyLeadscrew {
     bool gearbox_enableMotorBraking = true;
     bool gearbox_suppress = false;
 
-    private:
-    int hypotheticalLeadscrewPosition; // measured in motor steps, relative to real leadscrew position (our zero point)
+    float calculateMotorSteps(int encoderTicks); // Given encoder movement (and gearbox settings configured elsewhere) find number of steps to move, INDEPENDENT OF DIRECTION
+
+    float stepsMoved; // temporary for debugging
+    float encoderTicksRecorded;
+
+    // Clutch state info
+    DogClutch clutchState;
+    DogClutch lastClutchState;
+
+    //private:
     int zFeedDirection; // 0=neutral, 1=left, -1=right
     int zFeedDirection_previousCycle; // Still 0=neutral, 1=left, -1=right, but value from 1 cycle before
-    bool waitingForClutch;
 
     float stepsToMove_accumulator; // Used to keep track of fractional steps between leadscrew cycles
 
-    float calculateMotorSteps(int encoderTicks); // Given encoder movement (and gearbox settings configured elsewhere) find number of steps to move, INDEPENDENT OF DIRECTION
+    float constrainDegrees(float input);
+
+    // Handle actually moving the motor, including accounting for fractional steps, and calling run()
+    void handleMotorMove(float steps);
+
+    
 
 };
 

@@ -67,7 +67,7 @@ void setup()
   
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
-  zStepper.setAcceleration(500000.0);
+  zStepper.setAcceleration(100000.0);
 
   // Initialize control panel hardware
   cPanel.init();
@@ -79,10 +79,35 @@ void setup()
   els.gearbox_enableMotorBraking = true;
   els.gearbox_pitch = {20, tpi, rightHandThread_feedLeft};
   els.engageZFeedLeft();
+  els.clutchState.engaged = false;
+  els.clutchState.locked = true;
 }
 
 void loop()
 {
-  els.cycle();
-  
+  elapsedMillis stopwatch;
+
+  // Feed normally 10sec
+  Serial.println("ENGAGING FWD FEED");
+  Serial.print("Encoder steps since disengage = ");
+  Serial.println(els.encoderTicksRecorded);
+  els.clutchState.engaged = true;
+  while (stopwatch<10000) {
+    els.cycle();
+  }
+
+  els.zStepper.runToPosition();
+
+  // Feed neutral for 10 sec
+  stopwatch=0;
+  Serial.println("DISENGAGING FEED");
+
+  els.clutchState.engaged = false;
+  els.clutchState.locked = false;
+  els.clutchState.inputShaftAngle = 0;
+  els.encoderTicksRecorded=0;
+
+  while (stopwatch<5000) {
+    els.cycle();
+  }
 }
