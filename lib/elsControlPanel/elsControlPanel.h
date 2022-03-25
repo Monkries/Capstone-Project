@@ -21,6 +21,7 @@ class elsControlPanel {
 
         // Main Utility Functions
         void TFT_writeGearboxInfo(String mode, Pitch currentPitch, String button1text, String button2text, String button3text);
+        void TFT_splashscreen();
         // Update the alphanumeric RPM display
         void alphanum_writeRPM(unsigned int rpm);
         void writeOverspeedLED(bool overspeed); // Call with "true" to illuminate overspeed LED

@@ -16,76 +16,107 @@ tft(tftObject) // This weird syntax is required in order to pass in already-crea
 
 void elsControlPanel::init() {
     alpha4.begin(rpmReadouti2cAddress); // Initialize with whatever configured address (default is 0x70, per adafruit)
-    tft.begin(100);
+    tft.begin();
+}
+
+// Initial loading screen
+void elsControlPanel::TFT_splashscreen() {
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setCursor(0, 0);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.setTextSize(3);
+    tft.println("  Electroturn\n");
+    tft.print("  Electronic\n  Leadscrew\n");
+    delay(3000);
+    tft.setRotation(0);
+    tft.fillScreen(ILI9341_WHITE);
+
 }
 
 // button1text controls units, button2text controls hardinge threading, button3text controls nothing currently
 void elsControlPanel::TFT_writeGearboxInfo(String mode, Pitch currentPitch, String button1text, String button2text, String button3text) {
     //  tft.fillScreen(ILI9341_CYAN);
     //  delay(2000);
-     tft.fillScreen(ILI9341_WHITE);
-     tft.setCursor(0, 0);
-     tft.setTextColor(ILI9341_BLACK);
-     tft.setTextSize(3);
+    tft.fillScreen(ILI9341_WHITE);
+    tft.setCursor(0, 0);
+    tft.setTextColor(ILI9341_BLACK);
+    tft.setTextSize(3);
+    tft.setTextWrap(false);
 
         if (mode == "Power Feed") {
-            tft.println("  Power Feed\n\n");
+            tft.println("\n  Power Feed\n\n");
             if (currentPitch.units == tpi) {
-                tft.print(" ");
+                tft.print("  ");
+                tft.setTextSize(4);
                 tft.print(currentPitch.value);
-                tft.println("in/REV\n\n");
+                tft.println("in\n\n");
+                tft.setTextSize(3);
             }
             else if (currentPitch.units == mm ) {
-                tft.print(" ");
+                tft.print("  ");
+                tft.setTextSize(4);
                 tft.print(currentPitch.value);
-                tft.println("mm/REV\n\n");
+                tft.println("mm\n\n");
+                tft.setTextSize(3);
             }
-            tft.println("   mm/in");
+            tft.println("    mm/in");
         }
         else if (mode == "Threading") {
             if (button2text == "Rapid Right") {
-                tft.println("  Threading\n\n");
+                tft.println("\n  Threading\n\n");
                 if (currentPitch.units == tpi) {
                     tft.print("  ");
+                    tft.setTextSize(4);
                     tft.print(currentPitch.value);  
                     tft.println("TPI\n\n");
-                    tft.println("   mm/in\n\n Rapid Right");
+                    tft.setTextSize(3);
+                    tft.println("    mm/in\n\n\n Rapid Right");
                 }
                 else if (currentPitch.units == mm) {
                     tft.print("  ");
+                    tft.setTextSize(4);
                     tft.print(currentPitch.value);
                     tft.println("mm\n\n");
-                    tft.println("   mm/in\n\n Rapid Right");
+                    tft.setTextSize(3);
+                    tft.println("    mm/in\n\n\n Rapid Right");
                 }
             }
             else if (button2text == "Rapid Left") {
-                tft.println("  Threading\n\n");
+                tft.println("\n  Threading\n\n");
                 if (currentPitch.units == tpi) {
                     tft.print("  ");
+                    tft.setTextSize(4);
                     tft.print(currentPitch.value);  
                     tft.println("TPI\n\n");
-                    tft.println("   mm/in\n\n  Rapid Left");
+                    tft.setTextSize(3);
+                    tft.println("    mm/in\n\n\n  Rapid Left");
                 }
                 else if (currentPitch.units == mm) {
                     tft.print("  ");
+                    tft.setTextSize(4);
                     tft.print(currentPitch.value);
                     tft.println("mm\n\n");
-                    tft.println("   mm/in\n\n  Rapid Left");
+                    tft.setTextSize(3);
+                    tft.println("   mm/in\n\n\n  Rapid Left");
                 }
 
             }
             else {
-                tft.println("  Threading\n\n");
+                tft.println("\n  Threading\n\n");
                 tft.print("  ");
                 if (currentPitch.units == tpi) {
+                    tft.setTextSize(4);
                     tft.print(currentPitch.value);  
-                    tft.println("TPI\n\n");
-                    tft.println("   mm/in\n\n  Rapid Off");
+                    tft.print("TPI\n\n");
+                    tft.setTextSize(3);
+                    tft.println("    mm/in\n\n\n  Rapid Off");
                 }
                 else if (currentPitch.units == mm) {
+                    tft.setTextSize(4);
                     tft.print(currentPitch.value);
                     tft.println("mm\n\n");
-                    tft.println("   mm/in\n\n  Rapid Off");
+                    tft.setTextSize(3);
+                    tft.println("    mm/in\n\n\n  Rapid Off");
                 }
             }
         }

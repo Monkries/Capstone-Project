@@ -96,8 +96,10 @@ void setup()
 
   // TEMPORARY: Configure for test screw, 20tpi, no rapids
   els.gearbox_enableMotorBraking = true;
-  els.gearbox_pitch = {20, tpi, rightHandThread_feedLeft};
+  els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
   els.engageZFeedLeft();
+  cPanel.TFT_splashscreen();
+  delay(2000);
 }
 
 void loop()
@@ -108,15 +110,19 @@ void loop()
   // digitalWrite(LED_BUILTIN, LOW);
   // delay(1000);
 
+
   ///////////////////////////////////////////////////////////////////////////////////////////
   //                                TFT Display test code                                  //
-  // els.gearbox_pitch = {13, tpi, rightHandThread_feedLeft};
+  // els.gearbox_pitch = {8, tpi, rightHandThread_feedLeft};
   // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Left", "hello");
-  // els.gearbox_pitch = {15.6, mm, rightHandThread_feedLeft};
+  // els.gearbox_pitch = {15, tpi, rightHandThread_feedLeft};
   // delay(5000);
-  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "mm", "Rapid Right", "hello");
+  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Right", "hello");
   // delay(5000);
+  cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "mm", "Rapid Left", "hello");
   // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
+  delay(500);
+
   // delay(5000);
   // els.gearbox_pitch = {9, tpi, rightHandThread_feedLeft};
   // cPanel.TFT_writeGearboxInfo("Power Feed", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
