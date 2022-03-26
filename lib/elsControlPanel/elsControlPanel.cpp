@@ -124,8 +124,14 @@ void elsControlPanel::TFT_writeGearboxInfo(String mode, Pitch currentPitch, Stri
 }
 
 void elsControlPanel::alphanum_writeRPM(unsigned int rpm) {
-    alpha4.writeDigitRaw(3, 0x0);
-    alpha4.writeDigitRaw(0, 0xffff);
+    alpha4.clear();
+    // Get int rpm into character array for printing (no leading 0s, but always 4 digits long)
+    char buffer[4];
+    sprintf(buffer, "%4d", rpm);
+
+    for (int i=0;i<4;i++) {
+        alpha4.writeDigitAscii(i,buffer[i]);
+    }
     alpha4.writeDisplay();
 
 }

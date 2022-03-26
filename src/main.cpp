@@ -40,7 +40,7 @@ QuadEncoder spindleEnc(1, 3, 2, 0);
 AccelStepper zStepper(AccelStepper::DRIVER, 4, 6);
 
 // Backend Electronic Leadscrew "Gearbox" lib setup
-TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 100);
+TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 500);
 
 /* CONTROL PANEL SETUP
 // TFT Display Pin Info (3/21/2022)
@@ -104,13 +104,6 @@ void setup()
 
 void loop()
 {
-  // Code for blinking LED on Teensy
-  // digitalWrite(LED_BUILTIN, HIGH);
-  // delay(1000);
-  // digitalWrite(LED_BUILTIN, LOW);
-  // delay(1000);
-
-
   ///////////////////////////////////////////////////////////////////////////////////////////
   //                                TFT Display test code                                  //
   // els.gearbox_pitch = {8, tpi, rightHandThread_feedLeft};
@@ -121,7 +114,6 @@ void loop()
   // delay(5000);
   cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "mm", "Rapid Left", "hello");
   // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
-  delay(500);
 
   // delay(5000);
   // els.gearbox_pitch = {9, tpi, rightHandThread_feedLeft};
@@ -133,16 +125,7 @@ void loop()
   //////////////////////////////////////////////////////////////////////////////////////////
   els.cycle();
 
-  unsigned int rpm = 2222;
-  Wire.beginTransmission(0x70);
-  cPanel.alphanum_writeRPM(rpm);
-  cPanel.alphanum_writeRPM(rpm);
-  rpm = rpm + 3500;
-  cPanel.alphanum_writeRPM(rpm);
-  rpm = rpm - 4500;
-  cPanel.alphanum_writeRPM(rpm);
-  rpm = rpm - 1000;
-  cPanel.alphanum_writeRPM(rpm);
-  cPanel.alphanum_writeRPM(rpm);
-  Wire.endTransmission();
+  // RPM display
+  int spindleRpm = (int)round(els.spindleTach.getRPM());
+  cPanel.alphanum_writeRPM(spindleRpm);
 }
