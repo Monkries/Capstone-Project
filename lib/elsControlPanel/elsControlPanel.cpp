@@ -30,11 +30,10 @@ void elsControlPanel::TFT_splashscreen() {
     delay(3000);
     tft.setRotation(0);
     tft.fillScreen(ILI9341_WHITE);
-
 }
 
 // button1text controls units, button2text controls hardinge threading, button3text controls nothing currently
-void elsControlPanel::TFT_writeGearboxInfo(String mode, Pitch currentPitch, String button1text, String button2text, String button3text) {
+void elsControlPanel::TFT_writeGearboxInfo(enum ELSMode, Pitch currentPitch, String button1text, String button2text, String button3text) {
     //  tft.fillScreen(ILI9341_CYAN);
     //  delay(2000);
     tft.fillScreen(ILI9341_WHITE);
@@ -43,7 +42,7 @@ void elsControlPanel::TFT_writeGearboxInfo(String mode, Pitch currentPitch, Stri
     tft.setTextSize(3);
     tft.setTextWrap(false);
 
-        if (mode == "Power Feed") {
+        if (ELSMode == "Power Feed") {
             tft.println("\n  Power Feed\n\n");
             if (currentPitch.units == tpi) {
                 tft.print("  ");
