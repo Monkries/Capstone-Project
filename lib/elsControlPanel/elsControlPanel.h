@@ -12,10 +12,27 @@
 // - TFT display: https://www.adafruit.com/product/1480 (wiring info: https://learn.adafruit.com/2-2-tft-display/pinouts)
 // - alphanumeric display: https://www.adafruit.com/product/2157
 
+// Modes for TFT to display
 enum ELSMode {
     Threading,
     PowerFeed
 };
+extern ELSMode mode;
+
+// Rapid modes
+enum ELSRapid {
+    RapidLeft,
+    RapidRight,
+    RapidOff
+};
+extern ELSRapid rapid;
+
+// Pitch modes
+enum ELSPitch {
+    ThreadperInch,
+    Milimeter
+};
+extern ELSPitch Togglepitch;
 
 class elsControlPanel {
     public:
@@ -24,11 +41,12 @@ class elsControlPanel {
         void init(); // Clear everything, call tft.begin() and similar hardware initialization stuff here
 
         // Main Utility Functions
-        void TFT_writeGearboxInfo(enum ELSMode, Pitch currentPitch, String button1text, String button2text, String button3text);
+        void TFT_writeGearboxInfo(const ELSMode& m, Pitch currentPitch, const ELSPitch& Togglepitch, const ELSRapid& rapid, String button3text);
+        // Loading screen upon startup
         void TFT_splashscreen();
         // Update the alphanumeric RPM display
         void alphanum_writeRPM(unsigned int rpm);
-        void writeOverspeedLED(bool overspeed); // Call with "true" to illuminate overspeed LED
+        void writeOverspeedLED(bool overspeed, unsigned int rpm); // Call with "true" to illuminate overspeed LED
         // TODO: function to return a struct with states of all the buttons since we last checked
 
         // Hardware Objects

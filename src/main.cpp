@@ -10,12 +10,7 @@
 #include <TeensyLeadscrew.h> // Our main "virtual gearbox" backend lib
 #include <elsControlPanel.h>
 #include "Adafruit_LEDBackpack.h"
-// I2C Libraries
-// #include "i2c_driver.h"
-// #include "i2c_register_slave.h"
-// #include "i2c_device.h"
-// #include "imx_rt1060/imx_rt1060_i2c_driver.h"
-//#include "i2c_driver_wire.h"
+
 
 // Debugging stuff
 /*
@@ -98,6 +93,9 @@ void setup()
   els.gearbox_enableMotorBraking = true;
   els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
   els.engageZFeedLeft();
+  ELSMode mode = Threading;
+  ELSRapid rapid = RapidLeft;
+  ELSPitch Togglepitch = ThreadperInch;
   cPanel.TFT_splashscreen();
   delay(2000);
 }
@@ -106,13 +104,13 @@ void loop()
 {
   ///////////////////////////////////////////////////////////////////////////////////////////
   //                                TFT Display test code                                  //
-  // els.gearbox_pitch = {8, tpi, rightHandThread_feedLeft};
-  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Left", "hello");
+  els.gearbox_pitch = {8, tpi, rightHandThread_feedLeft};
+  cPanel.TFT_writeGearboxInfo(mode, els.gearbox_pitch, Togglepitch, rapid, "hello");
   // els.gearbox_pitch = {15, tpi, rightHandThread_feedLeft};
   // delay(5000);
   // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Right", "hello");
   // delay(5000);
-  cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "mm", "Rapid Left", "hello");
+  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "mm", "Rapid Left", "hello");
   // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
 
   // delay(5000);
