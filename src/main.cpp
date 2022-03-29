@@ -1,3 +1,4 @@
+
 #include <Arduino.h>
 #include <Wire.h>
 #include <SPI.h>
@@ -8,7 +9,13 @@
 #include <EncoderTach.h> // Our encoder RPM helper library
 #include <TeensyLeadscrew.h> // Our main "virtual gearbox" backend lib
 #include <elsControlPanel.h>
-
+#include "Adafruit_LEDBackpack.h"
+// I2C Libraries
+// #include "i2c_driver.h"
+// #include "i2c_register_slave.h"
+// #include "i2c_device.h"
+// #include "imx_rt1060/imx_rt1060_i2c_driver.h"
+//#include "i2c_driver_wire.h"
 
 // Debugging stuff
 /*
@@ -35,8 +42,7 @@ AccelStepper zStepper(AccelStepper::DRIVER, 4, 6);
 // Backend Electronic Leadscrew "Gearbox" lib setup
 TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 100);
 
-// CONTROL PANEL SETUP
-
+/* CONTROL PANEL SETUP
 // TFT Display Pin Info (3/21/2022)
 // SCK -> 13
 // MISO -> 12
@@ -45,6 +51,7 @@ TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 100);
 // SD_CS -> n/c
 // RESET -> 15
 // D/C -> 14
+*/
 Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 
 // Alphanumeric Display (for RPM) Pin Info
@@ -55,16 +62,28 @@ Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 // Create control panel class
 elsControlPanel cPanel(tftObject);
 
+  // Setup master-slave for Alphanumeric
+  // I2CMaster& master = Master; 
+  // const uint8_t slave_address = 0x70;
+  // I2CDevice sensor = I2CDevice(master, slave_address, __ORDER_BIG_ENDIAN__ );
+
+// Setup function
 void setup()
 {
-  Serial.begin(19200);
-
   // Initialize spindle encoder
   spindleEnc.setInitConfig();
   spindleEnc.init();
 
-  pinMode(4, OUTPUT); // TODO: do we need this?
-  
+  // Setup pins for the teensy
+  pinMode(10, OUTPUT);
+  pinMode(11, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(13, OUTPUT);
+  pinMode(14, OUTPUT);
+  pinMode(15, OUTPUT);
+  pinMode(17, OUTPUT);
+  pinMode(16, OUTPUT);
+ 
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
   zStepper.setAcceleration(500000.0);
@@ -77,12 +96,53 @@ void setup()
 
   // TEMPORARY: Configure for test screw, 20tpi, no rapids
   els.gearbox_enableMotorBraking = true;
-  els.gearbox_pitch = {20, tpi, rightHandThread_feedLeft};
+  els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
   els.engageZFeedLeft();
+  cPanel.TFT_splashscreen();
+  delay(2000);
 }
 
 void loop()
 {
+  // Code for blinking LED on Teensy
+  // digitalWrite(LED_BUILTIN, HIGH);
+  // delay(1000);
+  // digitalWrite(LED_BUILTIN, LOW);
+  // delay(1000);
+
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  //                                TFT Display test code                                  //
+  // els.gearbox_pitch = {8, tpi, rightHandThread_feedLeft};
+  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Left", "hello");
+  // els.gearbox_pitch = {15, tpi, rightHandThread_feedLeft};
+  // delay(5000);
+  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Right", "hello");
+  // delay(5000);
+  cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "mm", "Rapid Left", "hello");
+  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
+  delay(500);
+
+  // delay(5000);
+  // els.gearbox_pitch = {9, tpi, rightHandThread_feedLeft};
+  // cPanel.TFT_writeGearboxInfo("Power Feed", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
+  // els.gearbox_pitch = {8, mm, rightHandThread_feedLeft};
+  // delay(5000);
+  // cPanel.TFT_writeGearboxInfo("Power Feed", els.gearbox_pitch, "mm", "Rapid Off", "hello");
+  // delay(5000);
+  //////////////////////////////////////////////////////////////////////////////////////////
   els.cycle();
-  
+
+  unsigned int rpm = 2222;
+  Wire.beginTransmission(0x70);
+  cPanel.alphanum_writeRPM(rpm);
+  cPanel.alphanum_writeRPM(rpm);
+  rpm = rpm + 3500;
+  cPanel.alphanum_writeRPM(rpm);
+  rpm = rpm - 4500;
+  cPanel.alphanum_writeRPM(rpm);
+  rpm = rpm - 1000;
+  cPanel.alphanum_writeRPM(rpm);
+  cPanel.alphanum_writeRPM(rpm);
+  Wire.endTransmission();
 }
