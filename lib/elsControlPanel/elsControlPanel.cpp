@@ -50,7 +50,7 @@ void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, 
                 tft.setTextSize(4);
                 tft.print(currentPitch.value);
                 tft.println("TPI");
-                tft.println("\n\n");
+                tft.print("\n");
                 tft.setTextSize(3);
             }
             else if (currentPitch.units == mm ) {
@@ -58,7 +58,7 @@ void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, 
                 tft.setTextSize(4);
                 tft.print(currentPitch.value);
                 tft.println("mm");
-                tft.println("\n\n");
+                tft.print("\n");
                 tft.setTextSize(3);
             }
             tft.println("    mm/in");
@@ -72,7 +72,7 @@ void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, 
                     tft.print("  ");
                     tft.setTextSize(4);
                     tft.print(currentPitch.value);  
-                    tft.println("TPI\n\n");
+                    tft.println("TPI\n");
                     tft.setTextSize(3);
                     tft.println("    mm/in\n\n\n Rapid Right");
                 }
@@ -80,7 +80,7 @@ void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, 
                     tft.print("  ");
                     tft.setTextSize(4);
                     tft.print(currentPitch.value);
-                    tft.println("mm\n\n");
+                    tft.println("mm\n");
                     tft.setTextSize(3);
                     tft.println("    mm/in\n\n\n Rapid Right");
                 }
@@ -92,7 +92,7 @@ void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, 
                     tft.print("  ");
                     tft.setTextSize(4);
                     tft.print(currentPitch.value);  
-                    tft.println("TPI\n\n");
+                    tft.println("TPI\n");
                     tft.setTextSize(3);
                     tft.println("    mm/in\n\n\n  Rapid Left");
                 }
@@ -100,9 +100,9 @@ void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, 
                     tft.print("  ");
                     tft.setTextSize(4);
                     tft.print(currentPitch.value);
-                    tft.println("mm\n\n");
+                    tft.println("mm\n");
                     tft.setTextSize(3);
-                    tft.println("   mm/in\n\n\n  Rapid Left");
+                    tft.println("    mm/in\n\n\n  Rapid Left");
                 }
 
             }
@@ -120,7 +120,7 @@ void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, 
                 else if (currentPitch.units == mm) {
                     tft.setTextSize(4);
                     tft.print(currentPitch.value);
-                    tft.println("mm\n\n");
+                    tft.println("mm\n");
                     tft.setTextSize(3);
                     tft.println("    mm/in\n\n\n  Rapid Off");
                 }

@@ -97,21 +97,34 @@ void loop()
   ///////////////////////////////////////////////////////////////////////////////////////////
   //                                TFT Display test code                                  //
   els.gearbox_pitch = {8, tpi, rightHandThread_feedLeft};
-  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "hello");
-  // els.gearbox_pitch = {15, tpi, rightHandThread_feedLeft};
-  // delay(5000);
-  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Right", "hello");
-  // delay(5000);
-  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "mm", "Rapid Left", "hello");
-  // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
-
-  // delay(5000);
-  // els.gearbox_pitch = {9, tpi, rightHandThread_feedLeft};
-  // cPanel.TFT_writeGearboxInfo("Power Feed", els.gearbox_pitch, "tpi", "Rapid Off", "hello");
-  // els.gearbox_pitch = {8, mm, rightHandThread_feedLeft};
-  // delay(5000);
-  // cPanel.TFT_writeGearboxInfo("Power Feed", els.gearbox_pitch, "mm", "Rapid Off", "hello");
-  // delay(5000);
+  els.gearbox_rapidLeft = false;
+  els.gearbox_rapidRight = false;
+  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid off imperial
+  delay(5000);
+  els.gearbox_pitch = {15, tpi, rightHandThread_feedLeft};
+  els.gearbox_rapidLeft = true;
+  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid Left imperial
+  delay(5000);
+  els.gearbox_rapidLeft = false;
+  els.gearbox_rapidRight = true;
+  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid right imperial
+  delay(5000);
+  els.gearbox_pitch = {9, mm, rightHandThread_feedLeft};
+  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid right metric
+  delay(5000);
+  els.gearbox_rapidLeft = true;
+  els.gearbox_rapidRight = false;
+  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid left metric
+  delay(5000);
+  els.gearbox_rapidLeft = false;
+  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid off metric
+  delay(5000);
+  els.gearbox_pitch = {10, tpi, rightHandThread_feedLeft};
+  cPanel.TFT_writeGearboxInfo(PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Power feed imperial
+  delay(5000);
+  els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
+  cPanel.TFT_writeGearboxInfo(PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Power feed metric
+  delay(5000);
   //////////////////////////////////////////////////////////////////////////////////////////
   els.cycle();
 
