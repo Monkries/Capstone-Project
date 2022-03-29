@@ -8,7 +8,7 @@
 #include "TeensyLeadscrew.h"
 #include "Wire.h"
 
-static int MAX_RPM = 3000; //this might get moved somewhere else eventually but this is a realistic value we can use
+static int MAX_RPM = 3000; 
 
 elsControlPanel::elsControlPanel(Adafruit_ILI9341 &tftObject, uint8_t arg_rpmReadouti2cAddress) :
 tft(tftObject)
@@ -17,7 +17,7 @@ tft(tftObject)
 }
 
 void elsControlPanel::init() {
-    alpha4.begin(rpmReadouti2cAddress); // Initialize with whatever configured address (default is 0x70, per adafruit)
+    alpha4.begin(rpmReadouti2cAddress); 
     tft.begin();
 }
 
@@ -31,12 +31,10 @@ void elsControlPanel::TFT_splashscreen() {
     tft.print("  Electronic\n  Leadscrew\n");
     delay(3000);
     tft.setRotation(0);
-    tft.fillScreen(ILI9341_WHITE);
+    tft.fillScreen(ILI9341_WHITE); // Clear screen
 }
 
-void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, bool rapidLeftEnabled, bool rapidRightEnabled, String button3text) {
-    //  tft.fillScreen(ILI9341_CYAN);
-    //  delay(2000);
+void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, bool rapidLeftEnabled, bool rapidRightEnabled, String button3text) { // Button3text for future additions
     tft.fillScreen(ILI9341_WHITE);
     tft.setCursor(0, 0);
     tft.setTextColor(ILI9341_BLACK);
@@ -142,7 +140,7 @@ void elsControlPanel::alphanum_writeRPM(unsigned int rpm) {
 
 }
 
-void elsControlPanel::writeOverspeedLED(bool overspeed, unsigned int rpm){
+void elsControlPanel::writeOverspeedLED(unsigned int rpm){
     if (rpm > MAX_RPM) {
         //LED = on
     }

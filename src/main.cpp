@@ -84,7 +84,7 @@ void setup()
   // Initialize electronic leadscrew backend
   els.init();
 
-  // TEMPORARY: Configure for test screw, 20tpi, no rapids
+  // Test Config for screw, 20tpi, no rapids
   els.gearbox_enableMotorBraking = true;
   els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
   els.engageZFeedLeft();
@@ -131,4 +131,5 @@ void loop()
   // RPM display
   int spindleRpm = (int)round(els.spindleTach.getRPM());
   cPanel.alphanum_writeRPM(spindleRpm);
+  cPanel.writeOverspeedLED(spindleRpm);
 }
