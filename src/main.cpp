@@ -57,11 +57,6 @@ Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 // Create control panel class
 elsControlPanel cPanel(tftObject);
 
-  // Setup master-slave for Alphanumeric
-  // I2CMaster& master = Master; 
-  // const uint8_t slave_address = 0x70;
-  // I2CDevice sensor = I2CDevice(master, slave_address, __ORDER_BIG_ENDIAN__ );
-
 // Setup function
 void setup()
 {
@@ -93,9 +88,6 @@ void setup()
   els.gearbox_enableMotorBraking = true;
   els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
   els.engageZFeedLeft();
-  ELSMode mode = Threading;
-  ELSRapid rapid = RapidLeft;
-  ELSPitch Togglepitch = ThreadperInch;
   cPanel.TFT_splashscreen();
   delay(2000);
 }
@@ -105,7 +97,7 @@ void loop()
   ///////////////////////////////////////////////////////////////////////////////////////////
   //                                TFT Display test code                                  //
   els.gearbox_pitch = {8, tpi, rightHandThread_feedLeft};
-  cPanel.TFT_writeGearboxInfo(mode, els.gearbox_pitch, Togglepitch, rapid, "hello");
+  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "hello");
   // els.gearbox_pitch = {15, tpi, rightHandThread_feedLeft};
   // delay(5000);
   // cPanel.TFT_writeGearboxInfo("Threading", els.gearbox_pitch, "tpi", "Rapid Right", "hello");

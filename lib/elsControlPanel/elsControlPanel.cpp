@@ -8,7 +8,7 @@
 #include "TeensyLeadscrew.h"
 #include "Wire.h"
 
-static int MAX_RPM = 20000;
+static int MAX_RPM = 3000; //this might get moved somewhere else eventually but this is a realistic value we can use
 
 elsControlPanel::elsControlPanel(Adafruit_ILI9341 &tftObject, uint8_t arg_rpmReadouti2cAddress) :
 tft(tftObject)
@@ -34,8 +34,7 @@ void elsControlPanel::TFT_splashscreen() {
     tft.fillScreen(ILI9341_WHITE);
 }
 
-// button1text controls units, button2text controls hardinge threading, button3text controls nothing currently
-void elsControlPanel::TFT_writeGearboxInfo(const ELSMode& m, Pitch currentPitch, const ELSPitch& Togglepitch, const ELSRapid& rapid, String button3text) {
+void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, bool rapidLeftEnabled, bool rapidRightEnabled, String button3text) {
     //  tft.fillScreen(ILI9341_CYAN);
     //  delay(2000);
     tft.fillScreen(ILI9341_WHITE);
@@ -44,13 +43,13 @@ void elsControlPanel::TFT_writeGearboxInfo(const ELSMode& m, Pitch currentPitch,
     tft.setTextSize(3);
     tft.setTextWrap(false);
 
-        if (m == ELSMode::PowerFeed) {
+        if (sysMode == PowerFeed) {
             tft.println("\n  Power Feed\n\n");
             if (currentPitch.units == tpi) {
                 tft.print("  ");
                 tft.setTextSize(4);
                 tft.print(currentPitch.value);
-                tft.println(Togglepitch);
+                tft.println("TPI");
                 tft.println("\n\n");
                 tft.setTextSize(3);
             }
@@ -58,14 +57,16 @@ void elsControlPanel::TFT_writeGearboxInfo(const ELSMode& m, Pitch currentPitch,
                 tft.print("  ");
                 tft.setTextSize(4);
                 tft.print(currentPitch.value);
-                tft.println(Togglepitch);
+                tft.println("mm");
                 tft.println("\n\n");
                 tft.setTextSize(3);
             }
             tft.println("    mm/in");
         }
-        else if (m == ELSMode::Threading) {
-            if (rapid == ELSRapid::RapidRight) {
+        else if (sysMode == Threading) {
+
+            // If rapid right is enabled
+            if (rapidRightEnabled) {
                 tft.println("\n  Threading\n\n");
                 if (currentPitch.units == tpi) {
                     tft.print("  ");
@@ -84,7 +85,8 @@ void elsControlPanel::TFT_writeGearboxInfo(const ELSMode& m, Pitch currentPitch,
                     tft.println("    mm/in\n\n\n Rapid Right");
                 }
             }
-            else if (rapid == ELSRapid::RapidLeft) {
+            // If rapid left is enabled
+            else if (rapidLeftEnabled) {
                 tft.println("\n  Threading\n\n");
                 if (currentPitch.units == tpi) {
                     tft.print("  ");
@@ -104,7 +106,8 @@ void elsControlPanel::TFT_writeGearboxInfo(const ELSMode& m, Pitch currentPitch,
                 }
 
             }
-            else {
+            // If no rapids are enabled
+            else if (!rapidRightEnabled && !rapidLeftEnabled) {
                 tft.println("\n  Threading\n\n");
                 tft.print("  ");
                 if (currentPitch.units == tpi) {
@@ -143,5 +146,4 @@ void elsControlPanel::writeOverspeedLED(bool overspeed, unsigned int rpm){
     if (rpm > MAX_RPM) {
         //LED = on
     }
-
 }
