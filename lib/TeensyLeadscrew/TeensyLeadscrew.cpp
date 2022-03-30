@@ -40,7 +40,6 @@ void TeensyLeadscrew::engageZFeedRight() {
 void TeensyLeadscrew::cycle() {
     // Define major variables
     int encoderTicks;
-    float stepsToMoveNow;
 
     // Read encoder movement since last cycle
     encoderTicks = spindleEncoder.read();
@@ -57,7 +56,7 @@ void TeensyLeadscrew::cycle() {
     // If the clutch is already locked, just go ahead and move the motor
     if (clutchState.engaged && clutchState.locked) {
         // Move motor as normal
-        stepsToMoveNow = calculateMotorSteps(encoderTicks);
+        motorStepTracker.totalValue += calculateMotorSteps(encoderTicks);
     }
     // If the clutch isn't locked, but is engaged, see if it lines up on this cycle (meaning we start movement on the next one)
     else if (clutchState.engaged && !clutchState.locked) {
@@ -68,9 +67,6 @@ void TeensyLeadscrew::cycle() {
             stepsToMove_accumulator = 0; // TODO: might not actually need this
         }
     }
-    else {
-        stepsToMoveNow=0;
-    }
 
     // Store this clutch state for next cycle
     lastClutchState = clutchState;
@@ -78,7 +74,12 @@ void TeensyLeadscrew::cycle() {
     // stats for debugging
     encoderTicksRecorded = encoderTicksRecorded + encoderTicks;
 
-    handleMotorMove(stepsToMoveNow);
+    zStepper.moveTo(motorStepTracker.getIntegerPart());
+
+    // Allow the motor to run up to 2000 steps "blocking" the rest of the system
+    for (int i=0;i<sysInfo.stepsPerRev;i++) {
+        zStepper.run();
+    }
 }
 
 // Given the class's current gearbox config
@@ -134,21 +135,4 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
 
 float TeensyLeadscrew::constrainDegrees(float input) {
     return fmod(input, 360.0);
-}
-
-void TeensyLeadscrew::handleMotorMove(float stepsToMoveNow) {
-    // Deal with fractional "remainder" steps
-    stepsToMoveNow = stepsToMove_accumulator + stepsToMoveNow; // Bring in remainder steps from previous cycles
-    stepsToMove_accumulator = stepsToMoveNow - floor(stepsToMoveNow); // Shave "remainder steps" off this number, for later cycles
-    stepsToMoveNow = floor(stepsToMoveNow); // Now permanently store this, so we can move an integer number of steps
-
-    // Total Steps/Encoder Ticks Statistics (for debugging)
-    stepsMoved = stepsToMoveNow + stepsMoved;
-
-    zStepper.move(stepsToMoveNow+(float)zStepper.distanceToGo());
-
-    // Allow the motor to run up to 2000 steps "blocking" the rest of the system
-    for (int i=0;i<sysInfo.stepsPerRev;i++) {
-        zStepper.run();
-    }
 }

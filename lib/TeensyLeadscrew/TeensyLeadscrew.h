@@ -5,6 +5,7 @@
 #include "AccelStepper.h"
 #include "QuadEncoder.h"
 #include "EncoderTach.h"
+#include "IntegerStepHelper.h"
 
 // PITCH DATA TYPE
 // Can describe a feed rate or a thread pitch (tpi, in/rev, or mm/rev)
@@ -90,6 +91,8 @@ class TeensyLeadscrew {
     int zFeedDirection_previousCycle; // Still 0=neutral, 1=left, -1=right, but value from 1 cycle before
 
     float stepsToMove_accumulator; // Used to keep track of fractional steps between leadscrew cycles
+
+    IntegerStepHelper motorStepTracker;
 
     float constrainDegrees(float input);
 

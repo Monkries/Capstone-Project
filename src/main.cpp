@@ -55,6 +55,8 @@ Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 // Create control panel class
 elsControlPanel cPanel(tftObject);
 
+IntegerStepHelper queuedSteps;
+
 void setup()
 {
   Serial.begin(19200);
@@ -85,6 +87,7 @@ void setup()
 
 void loop()
 {
+  /*
   elapsedMillis stopwatch;
 
   // Feed normally 10sec
@@ -92,7 +95,8 @@ void loop()
   Serial.print("Encoder steps since disengage = ");
   Serial.println(els.encoderTicksRecorded);
   els.clutchState.engaged = true;
-  while (stopwatch<10000) {
+  //while (stopwatch<10000) {
+  while(true) {
     els.cycle();
   }
 
@@ -110,4 +114,11 @@ void loop()
   while (stopwatch<5000) {
     els.cycle();
   }
+  */
+
+  // Super simplified test code in absolute coordinates (WORKS!)
+  int encoderTicks = els.spindleEncoder.read();
+  queuedSteps.totalValue = els.calculateMotorSteps(encoderTicks);
+  els.zStepper.moveTo(queuedSteps.getIntegerPart());
+  els.zStepper.run();
 }
