@@ -1,6 +1,6 @@
 (footprint "GeckoG250XR2_WithHeatsink" (version 20211014) (generator pcbnew)
   (layer "F.Cu")
-  (tedit 62413FFE)
+  (tedit 6244B4F4)
   (descr "Through hole straight socket strip, 2x15, 2.54mm pitch, double cols (from Kicad 4.0.7), script generated")
   (tags "Through hole socket strip THT 2x15 2.54mm double row")
   (attr through_hole)
@@ -70,7 +70,7 @@
     (scale (xyz 1 1 1))
     (rotate (xyz 0 0 0))
   )
-  (model ":Capstone3DModels:GeckoG250XR2.step"
+  (model "${KIPRJMOD}/footprints/Electroturn_Parts.pretty/GeckoG250XR2.step"
     (offset (xyz 1.7145 -40.005 9.525))
     (scale (xyz 1 1 1))
     (rotate (xyz 0 180 0))

@@ -1,6 +1,6 @@
 (footprint "Teensy40_OnFemaleHeaders" (version 20211014) (generator pcbnew)
   (layer "F.Cu")
-  (tedit 624149A3)
+  (tedit 6244B47F)
   (attr through_hole)
   (fp_text reference "REF**" (at 0 -10.16) (layer "F.SilkS")
     (effects (font (size 1 1) (thickness 0.15)))
@@ -117,7 +117,7 @@
   (pad "31" thru_hole circle (at -11.43 -7.62) (size 1.6 1.6) (drill 1.1) (layers *.Cu *.Mask) (tstamp 9379168f-48ca-4895-ae2a-f80925ada292))
   (pad "32" thru_hole circle (at -13.97 -7.62) (size 1.6 1.6) (drill 1.1) (layers *.Cu *.Mask) (tstamp b97a34a6-9ff5-4661-a2bf-ed3f436e9c13))
   (pad "33" thru_hole circle (at -16.51 -7.62) (size 1.6 1.6) (drill 1.1) (layers *.Cu *.Mask) (tstamp c77ea87d-1827-479e-a244-b4392da6f976))
-  (model "${KIPRJMOD}/teensy.pretty-master/Teensy_4.0_Assembly.STEP"
+  (model "${KIPRJMOD}/footprints/teensy.pretty/Teensy_4.0_Assembly.STEP"
     (offset (xyz 33.0000102 9.5000064 -4.0150034))
     (scale (xyz 1 1 1))
     (rotate (xyz -90 0 0))
