@@ -2919,7 +2919,7 @@
     (property "Reference" "R?" (id 0) (at 294.64 195.5799 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Value" "5k" (id 1) (at 294.64 198.1199 0)
+    (property "Value" "10k" (id 1) (at 294.64 198.1199 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Footprint" "" (id 2) (at 293.878 196.85 90)
@@ -3279,7 +3279,7 @@
     (property "Reference" "R?" (id 0) (at 287.02 195.5799 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Value" "5k" (id 1) (at 287.02 198.1199 0)
+    (property "Value" "10k" (id 1) (at 287.02 198.1199 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Footprint" "" (id 2) (at 286.258 196.85 90)
@@ -3846,7 +3846,7 @@
       (reference "R?") (unit 1) (value "5k") (footprint "")
     )
     (path "/44d05f95-c05f-4d27-b008-026605ef30bf"
-      (reference "R?") (unit 1) (value "5k") (footprint "")
+      (reference "R?") (unit 1) (value "10k") (footprint "")
     )
     (path "/645e3d78-a90d-414c-aad0-e3317ada2110"
       (reference "R?") (unit 1) (value "1.5k") (footprint "")
@@ -3855,7 +3855,7 @@
       (reference "R?") (unit 1) (value "5k") (footprint "")
     )
     (path "/8a8afa01-3935-4cd5-98f5-8932bae63ccd"
-      (reference "R?") (unit 1) (value "5k") (footprint "")
+      (reference "R?") (unit 1) (value "10k") (footprint "")
     )
     (path "/d798ac97-4344-4dfa-8632-bb28b6283358"
       (reference "R?") (unit 1) (value "1.5k") (footprint "")
