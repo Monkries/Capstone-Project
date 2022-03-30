@@ -92,7 +92,7 @@ class TeensyLeadscrew {
 
     float stepsToMove_accumulator; // Used to keep track of fractional steps between leadscrew cycles
 
-    IntegerStepHelper motorStepTracker;
+    IntegerStepHelper queuedMotorSteps;
 
     float constrainDegrees(float input);
 

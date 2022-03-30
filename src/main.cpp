@@ -56,6 +56,7 @@ Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 elsControlPanel cPanel(tftObject);
 
 IntegerStepHelper queuedSteps;
+int absoluteEncoderPosition=0;
 
 void setup()
 {
@@ -87,16 +88,12 @@ void setup()
 
 void loop()
 {
-  /*
   elapsedMillis stopwatch;
 
   // Feed normally 10sec
   Serial.println("ENGAGING FWD FEED");
-  Serial.print("Encoder steps since disengage = ");
-  Serial.println(els.encoderTicksRecorded);
   els.clutchState.engaged = true;
-  //while (stopwatch<10000) {
-  while(true) {
+  while (stopwatch<10000) {
     els.cycle();
   }
 
@@ -114,11 +111,36 @@ void loop()
   while (stopwatch<5000) {
     els.cycle();
   }
-  */
 
-  // Super simplified test code in absolute coordinates (WORKS!)
-  int encoderTicks = els.spindleEncoder.read();
-  queuedSteps.totalValue = els.calculateMotorSteps(encoderTicks);
+ /*
+  // WORKING TEST CODE #1
+  absoluteEncoderPosition = els.spindleEncoder.read();
+  queuedSteps.totalValue = els.calculateMotorSteps(absoluteEncoderPosition);
   els.zStepper.moveTo(queuedSteps.getIntegerPart());
   els.zStepper.run();
+  */
+
+  /*
+  // WORKING TEST CODE #2
+  // This has the stepper motor in absolute coordinates, but the encoder in relative coordinates
+  int relativeEncoderMovement = els.spindleEncoder.read();
+  if (relativeEncoderMovement!=0) {
+      els.spindleEncoder.write(0); // This IF keeps us from losing "unfinished" steps by zeroing midway through a pulse train
+  }
+  queuedSteps.totalValue += els.calculateMotorSteps(relativeEncoderMovement);
+  els.zStepper.moveTo(queuedSteps.getIntegerPart());
+  els.zStepper.run();
+  */
+
+/*
+  // WORKING TEST CODE #3
+  // Both encoder and stepper in relative coordinates
+  int relativeEncoderMovement = els.spindleEncoder.read();
+  if (relativeEncoderMovement!=0) {
+      els.spindleEncoder.write(0); // This IF keeps us from losing "unfinished" steps by zeroing midway through a pulse train
+  }
+  queuedSteps.totalValue += els.calculateMotorSteps(relativeEncoderMovement);
+  els.zStepper.move(queuedSteps.popIntegerPart()+els.zStepper.distanceToGo());
+  els.zStepper.run();
+  */
 }

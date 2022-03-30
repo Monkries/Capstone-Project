@@ -38,25 +38,28 @@ void TeensyLeadscrew::engageZFeedRight() {
 // Reads the encoder object stored in the class, and moves the stepper motor accordingly
 // Call as often as possible
 void TeensyLeadscrew::cycle() {
-    // Define major variables
-    int encoderTicks;
-
     // Read encoder movement since last cycle
-    encoderTicks = spindleEncoder.read();
+    int relativeEncoderMovement = spindleEncoder.read();
     // Then re-zero encoder
-    spindleEncoder.write(0);
+    if (relativeEncoderMovement!=0) {
+        // This whole IF statement seems silly, but this is REALLY important
+        // If you just zero the encoder every time, you lose whatever fractional step is hanging in the balance
+        // (due to the rising and falling quadrature pulses)
+        // Don't get rid of this!!
+        spindleEncoder.write(0);
+    }
     // Cycle RPM calculator
-    spindleTach.recordTicks(encoderTicks);
+    spindleTach.recordTicks(relativeEncoderMovement);
 
     // BUSINESS
 
     // Move the clutch input shaft (and normalize the value as an angle in steps)
-    clutchState.inputShaftAngle = fmod( (clutchState.inputShaftAngle + calculateMotorSteps(encoderTicks)), sysInfo.stepsPerRev); // TODO: clarify this by moving to a function
+    clutchState.inputShaftAngle = fmod( (clutchState.inputShaftAngle + calculateMotorSteps(relativeEncoderMovement)), sysInfo.stepsPerRev); // TODO: clarify this by moving to a function
 
     // If the clutch is already locked, just go ahead and move the motor
     if (clutchState.engaged && clutchState.locked) {
         // Move motor as normal
-        motorStepTracker.totalValue += calculateMotorSteps(encoderTicks);
+        queuedMotorSteps.totalValue += calculateMotorSteps(relativeEncoderMovement);
     }
     // If the clutch isn't locked, but is engaged, see if it lines up on this cycle (meaning we start movement on the next one)
     else if (clutchState.engaged && !clutchState.locked) {
@@ -64,7 +67,6 @@ void TeensyLeadscrew::cycle() {
         if (clutchState.inputShaftAngle == 0) {
             // Clutch is aligned
             clutchState.locked = true;
-            stepsToMove_accumulator = 0; // TODO: might not actually need this
         }
     }
 
@@ -72,14 +74,11 @@ void TeensyLeadscrew::cycle() {
     lastClutchState = clutchState;
 
     // stats for debugging
-    encoderTicksRecorded = encoderTicksRecorded + encoderTicks;
+    encoderTicksRecorded = encoderTicksRecorded + relativeEncoderMovement;
 
-    zStepper.moveTo(motorStepTracker.getIntegerPart());
+    zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
 
-    // Allow the motor to run up to 2000 steps "blocking" the rest of the system
-    for (int i=0;i<sysInfo.stepsPerRev;i++) {
-        zStepper.run();
-    }
+    zStepper.run();
 }
 
 // Given the class's current gearbox config
