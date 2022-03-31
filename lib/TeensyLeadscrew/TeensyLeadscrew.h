@@ -90,17 +90,7 @@ class TeensyLeadscrew {
     int zFeedDirection; // 0=neutral, 1=left, -1=right
     int zFeedDirection_previousCycle; // Still 0=neutral, 1=left, -1=right, but value from 1 cycle before
 
-    float stepsToMove_accumulator; // Used to keep track of fractional steps between leadscrew cycles
-
-    IntegerStepHelper queuedMotorSteps;
-
-    float constrainDegrees(float input);
-
-    // Handle actually moving the motor, including accounting for fractional steps, and calling run()
-    void handleMotorMove(float steps);
-
-    
-
+    IntegerStepHelper queuedMotorSteps; // This is a helper class to make sure we keep track of fractional steps across cycles
 };
 
 #endif

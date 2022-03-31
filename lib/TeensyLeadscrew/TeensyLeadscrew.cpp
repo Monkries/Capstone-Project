@@ -131,7 +131,3 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
 
     return stepsToMove; // TODO: Handle direction
 }
-
-float TeensyLeadscrew::constrainDegrees(float input) {
-    return fmod(input, 360.0);
-}
