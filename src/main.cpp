@@ -10,6 +10,7 @@
 #include <TeensyLeadscrew.h> // Our main "virtual gearbox" backend lib
 #include <elsControlPanel.h>
 #include "Adafruit_LEDBackpack.h"
+#include "Adafruit_MCP23X17.h"
 
 
 // Debugging stuff
@@ -94,42 +95,51 @@ void setup()
 
 void loop()
 {
+
+  // RPM display
+  // int spindleRpm = (int)round(els.spindleTach.getRPM());
+  int spindleRpm = 1000;
+  cPanel.alphanum_writeRPM(spindleRpm);
+  cPanel.writeOverspeedLED(spindleRpm);
+
   ///////////////////////////////////////////////////////////////////////////////////////////
   //                                TFT Display test code                                  //
   els.gearbox_pitch = {8, tpi, rightHandThread_feedLeft};
   els.gearbox_rapidLeft = false;
   els.gearbox_rapidRight = false;
   cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid off imperial
-  delay(5000);
+  spindleRpm = 1578;
+  cPanel.alphanum_writeRPM(spindleRpm);
+  delay(1000);
   els.gearbox_pitch = {15, tpi, rightHandThread_feedLeft};
   els.gearbox_rapidLeft = true;
   cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid Left imperial
-  delay(5000);
+  delay(1000);
   els.gearbox_rapidLeft = false;
   els.gearbox_rapidRight = true;
   cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid right imperial
-  delay(5000);
+  spindleRpm = 700;
+  cPanel.alphanum_writeRPM(spindleRpm);
+  delay(1000);
   els.gearbox_pitch = {9, mm, rightHandThread_feedLeft};
   cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid right metric
-  delay(5000);
+  delay(1000);
   els.gearbox_rapidLeft = true;
   els.gearbox_rapidRight = false;
   cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid left metric
-  delay(5000);
+  delay(1000);
   els.gearbox_rapidLeft = false;
   cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid off metric
-  delay(5000);
+  delay(1000);
   els.gearbox_pitch = {10, tpi, rightHandThread_feedLeft};
   cPanel.TFT_writeGearboxInfo(PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Power feed imperial
-  delay(5000);
+  spindleRpm = 3000;
+  cPanel.alphanum_writeRPM(spindleRpm);
+  delay(1000);
   els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
   cPanel.TFT_writeGearboxInfo(PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Power feed metric
-  delay(5000);
+  delay(1000);
   //////////////////////////////////////////////////////////////////////////////////////////
   els.cycle();
 
-  // RPM display
-  int spindleRpm = (int)round(els.spindleTach.getRPM());
-  cPanel.alphanum_writeRPM(spindleRpm);
-  cPanel.writeOverspeedLED(spindleRpm);
 }

@@ -7,6 +7,7 @@
 #include "elsControlPanel.h"
 #include "TeensyLeadscrew.h"
 #include "Wire.h"
+#include "Adafruit_MCP23X17.h"
 
 static int MAX_RPM = 3000; 
 
@@ -142,6 +143,6 @@ void elsControlPanel::alphanum_writeRPM(unsigned int rpm) {
 
 void elsControlPanel::writeOverspeedLED(unsigned int rpm){
     if (rpm > MAX_RPM) {
-        //LED = on
+        //LED ON
     }
 }

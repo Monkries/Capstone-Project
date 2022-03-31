@@ -7,6 +7,7 @@
 #include "Adafruit_GFX.h"
 #include "Adafruit_ILI9341.h" // for TFT
 #include "Adafruit_LEDBackpack.h" // for alphanumeric rpm display
+#include "Adafruit_MCP23X17.h"
 
 // This is meant to work with:
 // - TFT display: https://www.adafruit.com/product/1480 (wiring info: https://learn.adafruit.com/2-2-tft-display/pinouts)
