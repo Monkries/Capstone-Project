@@ -12,22 +12,31 @@
 // - TFT display: https://www.adafruit.com/product/1480 (wiring info: https://learn.adafruit.com/2-2-tft-display/pinouts)
 // - alphanumeric display: https://www.adafruit.com/product/2157
 
+// Possible modes for the system
+enum ELSMode {
+    Threading,
+    PowerFeed
+};
+
 class elsControlPanel {
     public:
         elsControlPanel(Adafruit_ILI9341 &tftObject, uint8_t rpmReadouti2cAddress = 0x70);
 
-        void init(); // Clear everything, call tft.begin() and similar hardware initialization stuff here
+        void init();
 
         // Main Utility Functions
-        void TFT_writeGearboxInfo(String mode, Pitch currentPitch, String button1text, String button2text, String button3text);
+        void TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, bool rapidLeftEnabled, bool rapidRightEnabled, String button3text);
+        // Loading screen upon startup
+        void TFT_splashscreen();
         // Update the alphanumeric RPM display
         void alphanum_writeRPM(unsigned int rpm);
-        void writeOverspeedLED(bool overspeed); // Call with "true" to illuminate overspeed LED
+        // LED for reaching max rpm 
+        void writeOverspeedLED(unsigned int rpm); 
         // TODO: function to return a struct with states of all the buttons since we last checked
 
         // Hardware Objects
-        Adafruit_AlphaNum4 rpmReadout;
-        uint8_t rpmReadouti2cAddress; // this defaults to 0x70 (per Adafruit) but we allow the user to set a custom one on class creation if they prefer
-        Adafruit_ILI9341 &tft; // This object gets created outside the class, then passed in (so we don't have to deal with all the pin assignments)
+        Adafruit_AlphaNum4 alpha4 = Adafruit_AlphaNum4();
+        uint8_t rpmReadouti2cAddress; // Default of 0x70 stated by Adafruit
+        Adafruit_ILI9341 tft = Adafruit_ILI9341(9, 10); // This object gets created outside the class
 };
 #endif

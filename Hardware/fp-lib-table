@@ -1,0 +1,5 @@
+(fp_lib_table
+  (lib (name "Electroturn_Parts")(type "KiCad")(uri "${KIPRJMOD}/footprints/Electroturn_Parts.pretty")(options "")(descr "Gecko, Teensy mounted on female headers, and any other custom parts we need"))
+  (lib (name "4pos_screwterminal")(type "KiCad")(uri "${KIPRJMOD}/footprints/4pos_screwterminal.pretty")(options "")(descr "4pos screw terminal from DigiKey"))
+  (lib (name "teensy")(type "KiCad")(uri "${KIPRJMOD}/footprints/teensy.pretty")(options "")(descr "3rd party Teensy footprints (not including headers)"))
+)

@@ -1,3 +1,4 @@
+
 #include <Arduino.h>
 #include <Wire.h>
 #include <SPI.h>
@@ -8,6 +9,7 @@
 #include <EncoderTach.h> // Our encoder RPM helper library
 #include <TeensyLeadscrew.h> // Our main "virtual gearbox" backend lib
 #include <elsControlPanel.h>
+#include "Adafruit_LEDBackpack.h"
 
 
 // Debugging stuff
@@ -33,10 +35,9 @@ QuadEncoder spindleEnc(1, 3, 2, 0);
 AccelStepper zStepper(AccelStepper::DRIVER, 4, 6);
 
 // Backend Electronic Leadscrew "Gearbox" lib setup
-TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 100);
+TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 500);
 
-// CONTROL PANEL SETUP
-
+/* CONTROL PANEL SETUP
 // TFT Display Pin Info (3/21/2022)
 // SCK -> 13
 // MISO -> 12
@@ -45,6 +46,7 @@ TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 100);
 // SD_CS -> n/c
 // RESET -> 15
 // D/C -> 14
+*/
 Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 
 // Alphanumeric Display (for RPM) Pin Info
@@ -55,19 +57,26 @@ Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 // Create control panel class
 elsControlPanel cPanel(tftObject);
 
+// Temporary Global Variables for Testing
 IntegerStepHelper queuedSteps;
 int absoluteEncoderPosition=0;
 
 void setup()
 {
-  Serial.begin(19200);
-
   // Initialize spindle encoder
   spindleEnc.setInitConfig();
   spindleEnc.init();
 
-  pinMode(4, OUTPUT); // TODO: do we need this?
-  
+  // Setup pins for the teensy
+  pinMode(10, OUTPUT);
+  pinMode(11, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(13, OUTPUT);
+  pinMode(14, OUTPUT);
+  pinMode(15, OUTPUT);
+  pinMode(17, OUTPUT);
+  pinMode(16, OUTPUT);
+ 
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
   zStepper.setAcceleration(100000.0);
@@ -77,10 +86,13 @@ void setup()
 
   // Initialize electronic leadscrew backend
   els.init();
+  
+  // Start the TFT splash screen
+  cPanel.TFT_splashscreen();
 
-  // TEMPORARY: Configure for test screw, 20tpi, no rapids
+  // Test Config for screw, 20tpi, no rapids
   els.gearbox_enableMotorBraking = true;
-  els.gearbox_pitch = {20, tpi, rightHandThread_feedLeft};
+  els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
   els.engageZFeedLeft();
   els.clutchState.engaged = false;
   els.clutchState.locked = true;
@@ -88,6 +100,7 @@ void setup()
 
 void loop()
 {
+  // This code (until "WORKING TEST CODE #1") engages the clutch 10 seconds, then disengages for 10 seconds, then repeats (for testing sync)
   elapsedMillis stopwatch;
 
   // Feed normally 10sec
@@ -112,7 +125,7 @@ void loop()
     els.cycle();
   }
 
- /*
+  /*
   // WORKING TEST CODE #1
   absoluteEncoderPosition = els.spindleEncoder.read();
   queuedSteps.totalValue = els.calculateMotorSteps(absoluteEncoderPosition);
@@ -132,7 +145,7 @@ void loop()
   els.zStepper.run();
   */
 
-/*
+  /*
   // WORKING TEST CODE #3
   // Both encoder and stepper in relative coordinates
   int relativeEncoderMovement = els.spindleEncoder.read();
@@ -143,4 +156,9 @@ void loop()
   els.zStepper.move(queuedSteps.popIntegerPart()+els.zStepper.distanceToGo());
   els.zStepper.run();
   */
+
+  // RPM display
+  int spindleRpm = (int)round(els.spindleTach.getRPM());
+  cPanel.alphanum_writeRPM(spindleRpm);
+  cPanel.writeOverspeedLED(spindleRpm);
 }
