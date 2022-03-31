@@ -38,76 +38,46 @@ void TeensyLeadscrew::engageZFeedRight() {
 // Reads the encoder object stored in the class, and moves the stepper motor accordingly
 // Call as often as possible
 void TeensyLeadscrew::cycle() {
-    // Define major variables
-    int encoderTicks;
-    float stepsToMoveNow;
-
     // Read encoder movement since last cycle
-    encoderTicks = spindleEncoder.read();
+    int relativeEncoderMovement = spindleEncoder.read();
     // Then re-zero encoder
-    spindleEncoder.write(0);
+    if (relativeEncoderMovement!=0) {
+        // This whole IF statement seems silly, but this is REALLY important
+        // If you just zero the encoder every time, you lose whatever fractional step is hanging in the balance
+        // (due to the rising and falling quadrature pulses)
+        // Don't get rid of this!!
+        spindleEncoder.write(0);
+    }
     // Cycle RPM calculator
-    spindleTach.recordTicks(encoderTicks);
-    
-    // Look at feed lever and gearbox config, and determine stepper movement (if any)
-    
-    // If the feed lever is in center neutral position
-    if (zFeedDirection == 0) {
-        // If it was JUST put into neutral
-        if (zFeedDirection_previousCycle != 0) {
-            // Call the current leadscrew position our zero point
-            hypotheticalLeadscrewPosition = 0;
-            // TODO: Check if motor target position is way off in the distance compared to current position
-        }
-        // Calculate hypothetical position
-        hypotheticalLeadscrewPosition += calculateMotorSteps(encoderTicks);
-        // Handle zero rollover (this is an angle in steps)
-        if (hypotheticalLeadscrewPosition >= (int)sysInfo.stepsPerRev) {
-            hypotheticalLeadscrewPosition -= (int)sysInfo.stepsPerRev;
-        }
+    spindleTach.recordTicks(relativeEncoderMovement);
+
+    // BUSINESS
+
+    // Move the clutch input shaft (and normalize the value as an angle in steps)
+    clutchState.inputShaftAngle = fmod( (clutchState.inputShaftAngle + calculateMotorSteps(relativeEncoderMovement)), sysInfo.stepsPerRev); // TODO: clarify this by moving to a function
+
+    // If the clutch is already locked, just go ahead and move the motor
+    if (clutchState.engaged && clutchState.locked) {
+        // Move motor as normal
+        queuedMotorSteps.totalValue += calculateMotorSteps(relativeEncoderMovement);
     }
-    else if (zFeedDirection == 1) {
-        // If the operator has just engaged the Z feed, then assume virtual clutch needs time to align
-        if (zFeedDirection_previousCycle == 0) {
-            waitingForClutch = true;
-        }
-
-        // TODO: determine acceptable margin of error from 0
-        if (hypotheticalLeadscrewPosition == 0) {
-            waitingForClutch = false;
-        }
-
-        if (!waitingForClutch) {
-            // Movement Calculation
-            stepsToMoveNow = calculateMotorSteps(encoderTicks)*(float)zFeedDirection;
-        }
-    }
-    else if (zFeedDirection == -1) {
-        // If the operator has just engaged the Z feed, then assume virtual clutch needs time to align
-        if (zFeedDirection_previousCycle == 0) {
-            waitingForClutch = true;
-        }
-
-        // TODO: determine acceptable margin of error from 0
-        if (hypotheticalLeadscrewPosition == 0) {
-            waitingForClutch = false;
-        }
-
-        if (!waitingForClutch) {
-            // Movement Calculation
-            stepsToMoveNow = calculateMotorSteps(encoderTicks)*(float)zFeedDirection;
+    // If the clutch isn't locked, but is engaged, see if it lines up on this cycle (meaning we start movement on the next one)
+    else if (clutchState.engaged && !clutchState.locked) {
+        // We're waiting for the clutch to align
+        if (clutchState.inputShaftAngle == 0) {
+            // Clutch is aligned
+            clutchState.locked = true;
         }
     }
 
-    // Store this cycle's feed direction (so we can check for state change on next cycle)
-    zFeedDirection_previousCycle = zFeedDirection;
+    // Store this clutch state for next cycle
+    lastClutchState = clutchState;
 
-    // Deal with fractional "remainder" steps
-    stepsToMoveNow = stepsToMove_accumulator + stepsToMoveNow; // Bring in remainder steps from previous cycles
-    stepsToMove_accumulator = stepsToMoveNow - floor(stepsToMoveNow); // Shave "remainder steps" off this number, for later cycles
-    stepsToMoveNow = floor(stepsToMoveNow); // Now permanently store this, so we can move an integer number of steps
+    // stats for debugging
+    encoderTicksRecorded = encoderTicksRecorded + relativeEncoderMovement;
 
-    zStepper.move(stepsToMoveNow + zStepper.distanceToGo());
+    zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
+
     zStepper.run();
 }
 
@@ -132,23 +102,13 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     float cutterMovement_inches;
     // If we're working in TPI
     if (gearbox_pitch.units == tpi) {
-        cutterMovement_inches = ((float)encoderTicks) * (1/(float)sysInfo.encoderTicksPerRev) * (1/gearbox_pitch.value); // TODO: pulley multiplier needed?
-        
-        if (false) {
-        Serial.print("encoderTicks = ");
-        Serial.println(encoderTicks);
-        Serial.print("encoderTicksPerRev = ");
-        Serial.println(sysInfo.encoderTicksPerRev);
-        Serial.print("gearbox_pitch.value = ");
-        Serial.println(gearbox_pitch.value);
-        }
-
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderPulleyMultiplier) * (1./(float)sysInfo.encoderTicksPerRev) * (1./gearbox_pitch.value);
     }
     else if (gearbox_pitch.units == in_per_rev) {
-        cutterMovement_inches = 0; // TODO
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox_pitch.value);
     }
     else if (gearbox_pitch.units == mm) {
-        cutterMovement_inches = 0; // TODO
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox_pitch.value) * (1./25.4);
     }
 
     // Now go from cutter movement to leadscrew motor steps
@@ -160,7 +120,7 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     }
     // If the leadscrew is metric
     else if (sysInfo.leadscrewPitch.units == mm) { 
-        stepsToMove = 0; //TODO
+        stepsToMove = cutterMovement_inches * (25.4) * (1./sysInfo.leadscrewPitch.value) * ((float)sysInfo.stepsPerRev);
     }
     // If the leadscrew is being given in inches-per-revolution, which shouldn't ever happen
     else {
@@ -169,9 +129,5 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
         return 0;
     }
 
-    if (stepsToMove != 0) {
-        Serial.print("stepsToMove = ");
-        Serial.println(stepsToMove);
-    }
     return stepsToMove; // TODO: Handle direction
 }
