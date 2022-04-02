@@ -59,7 +59,7 @@ void TeensyLeadscrew::cycle() {
 
 // Given the class's current gearbox config
 // and the number of spindle encoder ticks on this cycle,
-// find the number of motor steps the leadscrew should move, ignoring any clutch action
+// find the number of motor steps the leadscrew should move, ignoring any clutch action or reversing
 float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     /*
     Math Example: Cutting a 13TPI thread on a 20TPI leadscrew
