@@ -91,8 +91,8 @@ void setup()
   cPanel.TFT_splashscreen();
 
   // Test Config for screw, 20tpi, no rapids
-  els.gearbox_enableMotorBraking = true;
-  els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
+  els.gearbox.enableMotorBraking = true;
+  els.gearbox.configuredPitch = {20, tpi, rightHandThread_feedLeft};
   els.engageZFeedLeft();
   els.clutchState.engaged = false;
   els.clutchState.locked = true;
@@ -119,7 +119,6 @@ void loop()
   els.clutchState.engaged = false;
   els.clutchState.locked = false;
   els.clutchState.inputShaftAngle = 0;
-  els.encoderTicksRecorded=0;
 
   while (stopwatch<5000) {
     els.cycle();

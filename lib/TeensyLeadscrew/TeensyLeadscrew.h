@@ -22,16 +22,27 @@ enum PitchDirection {
     rightHandThread_feedLeft,
 };
 
+// For describing a thread pitch or a feed rate (e.g. "28TPI-RH" or "0.001in/REV, left")
 struct Pitch {
     float value;
     PitchUnits units;
     PitchDirection direction;
 };
 
+// For keeping track of "virtual single tooth clutch" state easily
 struct DogClutch {
     float inputShaftAngle;
     bool engaged;
     bool locked;
+};
+
+struct ELSGearboxConfig {
+    Pitch configuredPitch;
+    bool rapidLeft;
+    bool rapidRight;
+    unsigned int rapidStepRate;
+    bool enableMotorBraking; // Set to false to allow the motor to freewheel when not moving
+    bool disable; // Disable gearbox logic entirely (for future expansion to non-standard movements)
 };
 
 // Necessary hardware specifications for any lathe outfitted with a TeensyLeadscrew
@@ -50,12 +61,13 @@ class TeensyLeadscrew {
         LatheHardwareInfo hardwareSpecs,
         unsigned int tachometerSamplePeriod_micros);
 
-    void init();
+    void init(); // Initialize spindleTach and other stuff that must wait until the hardware is ready
 
     // Feed controls (modeled after HLV-H leadscrew clutch lever)
     void engageZFeedLeft();
     void engageZFeedRight();
     void disengageZFeed();
+    int getZFeedDirection();
 
     void cycle();
 
@@ -69,24 +81,16 @@ class TeensyLeadscrew {
     // Hardware Info (pulleys, leadscrew pitch, stepper maximums, etc)
     LatheHardwareInfo sysInfo;
 
-    // Gearbox Configuration Variables (with defaults for idiot proofing)
-    Pitch gearbox_pitch;
-    bool gearbox_rapidLeft = false;
-    bool gearbox_rapidRight = false;
-    unsigned int gearbox_rapidStepRate = 0;
-    bool gearbox_enableMotorBraking = true;
-    bool gearbox_suppress = false;
+    // Gearbox Configuration (default state is set in constructor)
+    ELSGearboxConfig gearbox;
 
     float calculateMotorSteps(int encoderTicks); // Given encoder movement (and gearbox settings configured elsewhere) find number of steps to move, INDEPENDENT OF DIRECTION
 
-    float stepsMoved; // temporary for debugging
-    float encoderTicksRecorded;
-
     // Clutch state info
     DogClutch clutchState;
-    DogClutch lastClutchState;
 
-    //private:
+    private:
+    DogClutch lastClutchState;
     int zFeedDirection; // 0=neutral, 1=left, -1=right
     int zFeedDirection_previousCycle; // Still 0=neutral, 1=left, -1=right, but value from 1 cycle before
 

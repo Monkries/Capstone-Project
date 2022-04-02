@@ -14,6 +14,15 @@ zStepper(arg_zStepper) // Same as above. If you don't have this, it tries to cop
 {
         // Store hardware specs
         sysInfo = arg_sysInfo;
+        // Set default gearbox state
+        gearbox.rapidLeft = false;
+        gearbox.rapidRight = false;
+        gearbox.enableMotorBraking = true;
+        gearbox.disable = false;
+        gearbox.rapidStepRate = 500; // TODO: how should we handle this?
+        gearbox.configuredPitch.value = 0.001; // Default to 0.001"/REV feed rate, feeding left
+        gearbox.configuredPitch.units = in_per_rev;
+        gearbox.configuredPitch.direction = rightHandThread_feedLeft;
 }
 
 void TeensyLeadscrew::init() {
@@ -32,6 +41,10 @@ void TeensyLeadscrew::engageZFeedLeft() {
 
 void TeensyLeadscrew::engageZFeedRight() {
     zFeedDirection = -1;
+}
+
+int TeensyLeadscrew::getZFeedDirection() {
+    return zFeedDirection;
 }
 
 // Handles one "cycle" of actual leadscrew movement
@@ -73,9 +86,6 @@ void TeensyLeadscrew::cycle() {
     // Store this clutch state for next cycle
     lastClutchState = clutchState;
 
-    // stats for debugging
-    encoderTicksRecorded = encoderTicksRecorded + relativeEncoderMovement;
-
     zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
 
     zStepper.run();
@@ -101,14 +111,14 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     // So first, we'll find the desired cutter movement (in inches)
     float cutterMovement_inches;
     // If we're working in TPI
-    if (gearbox_pitch.units == tpi) {
-        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderPulleyMultiplier) * (1./(float)sysInfo.encoderTicksPerRev) * (1./gearbox_pitch.value);
+    if (gearbox.configuredPitch.units == tpi) {
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderPulleyMultiplier) * (1./(float)sysInfo.encoderTicksPerRev) * (1./gearbox.configuredPitch.value);
     }
-    else if (gearbox_pitch.units == in_per_rev) {
-        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox_pitch.value);
+    else if (gearbox.configuredPitch.units == in_per_rev) {
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox.configuredPitch.value);
     }
-    else if (gearbox_pitch.units == mm) {
-        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox_pitch.value) * (1./25.4);
+    else if (gearbox.configuredPitch.units == mm) {
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox.configuredPitch.value) * (1./25.4);
     }
 
     // Now go from cutter movement to leadscrew motor steps
