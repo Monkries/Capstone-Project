@@ -93,30 +93,52 @@ void setup()
   // Test Config for screw, 20tpi, no rapids
   els.gearbox.enableMotorBraking = true;
   els.gearbox.configuredPitch = {20, tpi, rightHandThread_feedLeft};
-  els.engageZFeedLeft();
-  els.disengageZFeed(); // Must do this initially to zero the clutch
+  
 }
 
 void loop()
 {
-  // This code (until "WORKING TEST CODE #1") engages the clutch 10 seconds, then disengages for 10 seconds, then repeats (for testing sync)
-  elapsedMillis stopwatch;
+  elapsedMillis motorRunTime=0;
+  elapsedMillis stopwatch=0;
 
-  // Feed left (FWD) 10sec
-  Serial.println("ENGAGING FWD FEED");
-  els.engageZFeedLeft();
+
+  // Feed Forward 10 seconds
+  Serial.println("FORWARD!");
+  stopwatch=0;
+  els.clutch.engageForward();
   while (stopwatch<10000) {
+    motorRunTime=0;
+    els.cycle();
+    while (motorRunTime<30){
+      els.zStepper.run();
+    }
+  }
+
+  // Feed Neutral 5 seconds
+  Serial.println("NEUTRAL!");
+  stopwatch=0;
+  els.clutch.disengage();
+  while(stopwatch<5000){
     els.cycle();
   }
 
-  els.zStepper.runToPosition();
-
-  // Feed neutral for 10 sec
+  // Feed Reverse 10 seconds
+  Serial.println("REVERSE!");
   stopwatch=0;
-  Serial.println("DISENGAGING FEED");
+  els.clutch.engageReverse();
+  while (stopwatch<10000) {
+    motorRunTime=0;
+    els.cycle();
+    while (motorRunTime<30){
+      els.zStepper.run();
+    }
+  }
 
-  els.disengageZFeed();
-  while (stopwatch<5000) {
+  // Feed Neutral 5 seconds
+  Serial.println("NEUTRAL!");
+  stopwatch=0;
+  els.clutch.disengage();
+  while(stopwatch<5000){
     els.cycle();
   }
 

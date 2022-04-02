@@ -3,6 +3,7 @@
 #include "QuadEncoder.h"
 #include "EncoderTach.h"
 #include "TeensyLeadscrew.h"
+#include "SynchronousClutch.h"
 
 
 TeensyLeadscrew::TeensyLeadscrew(QuadEncoder &arg_spindleEncoder,
@@ -28,44 +29,6 @@ void TeensyLeadscrew::init() {
     spindleTach = EncoderTach(100, sysInfo.encoderTicksPerRev, sysInfo.encoderPulleyMultiplier);
 }
 
-// Z Feed "Lever" Control (modeled after HLV-H leadscrew clutch lever)
-
-// Disengage the synchronous feed clutch
-void TeensyLeadscrew::disengageZFeed() {
-    // Make sure we don't re-zero the clutch if the clutch is already disengaged when this function is called
-    if (zFeedDirection != 0) {
-        zFeedDirection = 0;
-        // Handle clutch state
-        clutchState.engaged = false;
-        clutchState.locked = false;
-        clutchState.inputShaftAngle = 0; // This marks the point where we disengaged the clutch
-    }
-}
-
-// Engage the synchronous feed clutch, feeding the tool left (toward headstock)
-// Note: this will wait for clutch sync, it won't necessarily start feeding instantly
-void TeensyLeadscrew::engageZFeedLeft() {
-    if (zFeedDirection != 1) {
-        zFeedDirection = 1;
-        // Handle clutch state
-        clutchState.engaged = true;
-    }
-}
-
-// Engage the synchronous feed clutch, feeding the tool right (toward tailstock)
-// Note: this will wait for clutch sync, it won't necessarily start feeding instantly
-void TeensyLeadscrew::engageZFeedRight() {
-    if (zFeedDirection != -1) {
-        zFeedDirection = -1;
-        // Handle clutch state
-        clutchState.engaged = true;
-    }
-}
-
-int TeensyLeadscrew::getZFeedDirection() {
-    return zFeedDirection;
-}
-
 // Handles one "cycle" of actual leadscrew movement
 // Reads the encoder object stored in the class, and moves the stepper motor accordingly
 // Call as often as possible
@@ -85,28 +48,20 @@ void TeensyLeadscrew::cycle() {
 
     // BUSINESS
 
-    // Move the clutch input shaft (and normalize the value as an angle in steps)
-    clutchState.inputShaftAngle = fmod( (clutchState.inputShaftAngle + calculateMotorSteps(relativeEncoderMovement)), sysInfo.stepsPerRev); // TODO: clarify this by moving to a function
+    // Encoder --> calculateMotorSteps --> clutch.move
+    // Spindle --> gearbox --------------> feed clutch
+    queuedMotorSteps.totalValue += clutch.move( calculateMotorSteps(relativeEncoderMovement) );
 
-    // If the clutch is already locked, just go ahead and move the motor
-    if (clutchState.engaged && clutchState.locked) {
-        // Move motor as normal
-        queuedMotorSteps.totalValue += calculateMotorSteps(relativeEncoderMovement);
-    }
-    // If the clutch isn't locked, but is engaged, see if it lines up on this cycle (meaning we start movement on the next one)
-    else if (clutchState.engaged && !clutchState.locked) {
-        // We're waiting for the clutch to align
-        if (clutchState.inputShaftAngle == 0) {
-            // Clutch is aligned
-            clutchState.locked = true;
-        }
-    }
-
-    // Store this clutch state for next cycle
-    lastClutchState = clutchState;
+    // Print a shit ton of clutch stats
+    Serial.print("fIn=");
+    Serial.print(clutch.fwdInputAngle);
+    Serial.print(", rIn=");
+    Serial.print(clutch.revInputAngle);
+    Serial.print(", Out=");
+    Serial.println(clutch.outputAngle);
 
     zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
-
+    // Actually move the motor
     zStepper.run();
 }
 

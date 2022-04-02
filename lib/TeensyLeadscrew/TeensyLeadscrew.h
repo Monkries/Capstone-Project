@@ -6,6 +6,7 @@
 #include "QuadEncoder.h"
 #include "EncoderTach.h"
 #include "IntegerStepHelper.h"
+#include "SynchronousClutch.h"
 
 // PITCH DATA TYPE
 // Can describe a feed rate or a thread pitch (tpi, in/rev, or mm/rev)
@@ -32,6 +33,7 @@ struct Pitch {
 // For keeping track of "virtual single tooth clutch" state easily
 struct DogClutch {
     float inputShaftAngle;
+    float outputShaftAngle;
     bool engaged;
     bool locked;
 };
@@ -62,12 +64,6 @@ class TeensyLeadscrew {
 
     void init(); // Initialize spindleTach and other stuff that must wait until the hardware is ready
 
-    // Feed controls (modeled after HLV-H leadscrew clutch lever)
-    void engageZFeedLeft();
-    void engageZFeedRight();
-    void disengageZFeed();
-    int getZFeedDirection();
-
     void cycle();
 
     // Spindle Tachometer
@@ -86,12 +82,7 @@ class TeensyLeadscrew {
     float calculateMotorSteps(int encoderTicks); // Given encoder movement (and gearbox settings configured elsewhere) find number of steps to move, INDEPENDENT OF DIRECTION
 
     // Clutch state info
-    DogClutch clutchState;
-
-    private:
-    DogClutch lastClutchState;
-    int zFeedDirection; // 0=neutral, 1=left, -1=right
-    int zFeedDirection_previousCycle; // Still 0=neutral, 1=left, -1=right, but value from 1 cycle before
+    SynchronousClutch clutch;
 
     IntegerStepHelper queuedMotorSteps; // This is a helper class to make sure we keep track of fractional steps across cycles
 };
