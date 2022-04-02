@@ -39,8 +39,6 @@ void TeensyLeadscrew::disengageZFeed() {
         clutchState.engaged = false;
         clutchState.locked = false;
         clutchState.inputShaftAngle = 0; // This marks the point where we disengaged the clutch
-        Serial.print("DISENGAGING, distanceToGo=");
-        Serial.println(zStepper.distanceToGo());
     }
 }
 
