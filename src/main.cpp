@@ -109,7 +109,7 @@ void loop()
   while (stopwatch<10000) {
     motorRunTime=0;
     els.cycle();
-    while (motorRunTime<30){
+    while (motorRunTime<15){
       els.zStepper.run();
     }
   }
@@ -129,7 +129,7 @@ void loop()
   while (stopwatch<10000) {
     motorRunTime=0;
     els.cycle();
-    while (motorRunTime<30){
+    while (motorRunTime<15){
       els.zStepper.run();
     }
   }

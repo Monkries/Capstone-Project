@@ -12,8 +12,8 @@ int SynchronousClutch::move(float inputSteps) {
     int outputShaftMovement=0;
 
     // Move input shafts to forward and reverse clutches
-    fwdInputAngle = fmod( (fwdInputAngle + inputSteps), stepsPerRev);
-    revInputAngle = fmod( (revInputAngle - inputSteps), stepsPerRev);
+    fwdInputAngle = constrainShaftAngle(fwdInputAngle+inputSteps);
+    revInputAngle = constrainShaftAngle(revInputAngle-inputSteps);
 
     if (fwdEngaged) {
         //We are using the forward clutch
@@ -28,7 +28,7 @@ int SynchronousClutch::move(float inputSteps) {
             // The clutch is engaged, but not locked yet (we are in the "waiting for sync" mode)
             Serial.print("Forward clutch checking for lock, ");
             // See if we are hitting the lock point
-            if (abs(fwdInputAngle - outputAngle) < 5) {
+            if (abs(fwdInputAngle - outputAngle) < 20) {
                 fwdLocked = true;
                 Serial.print("locked!");
             }
@@ -47,7 +47,7 @@ int SynchronousClutch::move(float inputSteps) {
             // The clutch is engaged, but not locked yet (we are in the "waiting for sync" mode)
             Serial.print("Reverse clutch checking for lock, ");
             // See if we are hitting the lock point
-            if (abs(revInputAngle - outputAngle) < 5) {
+            if (abs(revInputAngle - outputAngle) < 20) {
                 revLocked = true;
                 Serial.print("locked!");
             }
@@ -58,7 +58,15 @@ int SynchronousClutch::move(float inputSteps) {
     outputShaftMovement = stepQueue.popIntegerPart();
 
     // Adjust output shaft angle for outputShaftMovement
-    outputAngle = fmod( (outputAngle+(float)outputShaftMovement), stepsPerRev);
+    outputAngle = constrainShaftAngle(outputAngle+(float)outputShaftMovement);
+
+    // Print a shit ton of clutch stats
+    Serial.print("fIn=");
+    Serial.print(fwdInputAngle);
+    Serial.print(", rIn=");
+    Serial.print(revInputAngle);
+    Serial.print(", Out=");
+    Serial.println(outputAngle);
 
     return outputShaftMovement;
 }
@@ -76,4 +84,12 @@ void SynchronousClutch::engageForward(){
 
 void SynchronousClutch::engageReverse(){
     revEngaged = true;
+}
+
+float SynchronousClutch::constrainShaftAngle(float input) {
+    float output = fmod(input, stepsPerRev); // This will get us part of the way there, but allows negative angles (meaning -90 and 270 are considered different)
+    if (output<0) {
+        output+=stepsPerRev; // Force it to be positive
+    }
+    return output;
 }

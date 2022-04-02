@@ -52,14 +52,6 @@ void TeensyLeadscrew::cycle() {
     // Spindle --> gearbox --------------> feed clutch
     queuedMotorSteps.totalValue += clutch.move( calculateMotorSteps(relativeEncoderMovement) );
 
-    // Print a shit ton of clutch stats
-    Serial.print("fIn=");
-    Serial.print(clutch.fwdInputAngle);
-    Serial.print(", rIn=");
-    Serial.print(clutch.revInputAngle);
-    Serial.print(", Out=");
-    Serial.println(clutch.outputAngle);
-
     zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
     // Actually move the motor
     zStepper.run();
