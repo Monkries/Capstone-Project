@@ -38,8 +38,7 @@ struct DogClutch {
 
 struct ELSGearboxConfig {
     Pitch configuredPitch;
-    bool rapidLeft;
-    bool rapidRight;
+    bool rapidReturn; // rapid in the "return" direction, based on the direction of the thread/feed set in configuredPitch. (e.g. if you're cutting a 10TPI-RH thread, setting this to true will rapid toward the tailstock)
     unsigned int rapidStepRate;
     bool enableMotorBraking; // Set to false to allow the motor to freewheel when not moving
     bool disable; // Disable gearbox logic entirely (for future expansion to non-standard movements)

@@ -94,8 +94,7 @@ void setup()
   els.gearbox.enableMotorBraking = true;
   els.gearbox.configuredPitch = {20, tpi, rightHandThread_feedLeft};
   els.engageZFeedLeft();
-  els.clutchState.engaged = false;
-  els.clutchState.locked = true;
+  els.disengageZFeed(); // Must do this initially to zero the clutch
 }
 
 void loop()
@@ -103,9 +102,9 @@ void loop()
   // This code (until "WORKING TEST CODE #1") engages the clutch 10 seconds, then disengages for 10 seconds, then repeats (for testing sync)
   elapsedMillis stopwatch;
 
-  // Feed normally 10sec
+  // Feed left (FWD) 10sec
   Serial.println("ENGAGING FWD FEED");
-  els.clutchState.engaged = true;
+  els.engageZFeedLeft();
   while (stopwatch<10000) {
     els.cycle();
   }
@@ -116,10 +115,7 @@ void loop()
   stopwatch=0;
   Serial.println("DISENGAGING FEED");
 
-  els.clutchState.engaged = false;
-  els.clutchState.locked = false;
-  els.clutchState.inputShaftAngle = 0;
-
+  els.disengageZFeed();
   while (stopwatch<5000) {
     els.cycle();
   }

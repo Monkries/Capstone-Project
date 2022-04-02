@@ -15,8 +15,7 @@ zStepper(arg_zStepper) // Same as above. If you don't have this, it tries to cop
         // Store hardware specs
         sysInfo = arg_sysInfo;
         // Set default gearbox state
-        gearbox.rapidLeft = false;
-        gearbox.rapidRight = false;
+        gearbox.rapidReturn = false;
         gearbox.enableMotorBraking = true;
         gearbox.disable = false;
         gearbox.rapidStepRate = 500; // TODO: how should we handle this?
@@ -31,16 +30,38 @@ void TeensyLeadscrew::init() {
 
 // Z Feed "Lever" Control (modeled after HLV-H leadscrew clutch lever)
 
+// Disengage the synchronous feed clutch
 void TeensyLeadscrew::disengageZFeed() {
-    zFeedDirection = 0;
+    // Make sure we don't re-zero the clutch if the clutch is already disengaged when this function is called
+    if (zFeedDirection != 0) {
+        zFeedDirection = 0;
+        // Handle clutch state
+        clutchState.engaged = false;
+        clutchState.locked = false;
+        clutchState.inputShaftAngle = 0; // This marks the point where we disengaged the clutch
+        Serial.print("DISENGAGING, distanceToGo=");
+        Serial.println(zStepper.distanceToGo());
+    }
 }
 
+// Engage the synchronous feed clutch, feeding the tool left (toward headstock)
+// Note: this will wait for clutch sync, it won't necessarily start feeding instantly
 void TeensyLeadscrew::engageZFeedLeft() {
-    zFeedDirection = 1;
+    if (zFeedDirection != 1) {
+        zFeedDirection = 1;
+        // Handle clutch state
+        clutchState.engaged = true;
+    }
 }
 
+// Engage the synchronous feed clutch, feeding the tool right (toward tailstock)
+// Note: this will wait for clutch sync, it won't necessarily start feeding instantly
 void TeensyLeadscrew::engageZFeedRight() {
-    zFeedDirection = -1;
+    if (zFeedDirection != -1) {
+        zFeedDirection = -1;
+        // Handle clutch state
+        clutchState.engaged = true;
+    }
 }
 
 int TeensyLeadscrew::getZFeedDirection() {
@@ -109,7 +130,8 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     */
 
     // So first, we'll find the desired cutter movement (in inches)
-    float cutterMovement_inches;
+
+    float cutterMovement_inches; // positive means toward the headstock
     // If we're working in TPI
     if (gearbox.configuredPitch.units == tpi) {
         cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderPulleyMultiplier) * (1./(float)sysInfo.encoderTicksPerRev) * (1./gearbox.configuredPitch.value);
@@ -139,5 +161,5 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
         return 0;
     }
 
-    return stepsToMove; // TODO: Handle direction
+    return stepsToMove;
 }
