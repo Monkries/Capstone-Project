@@ -9,7 +9,7 @@
 #include "Wire.h"
 #include "Adafruit_MCP23X17.h"
 
-static int MAX_RPM = 3000; 
+static unsigned int MAX_RPM = 3000; 
 
 elsControlPanel::elsControlPanel(Adafruit_ILI9341 &tftObject, uint8_t arg_rpmReadouti2cAddress) :
 tft(tftObject)
@@ -35,14 +35,14 @@ void elsControlPanel::TFT_splashscreen() {
     tft.fillScreen(ILI9341_WHITE); // Clear screen
 }
 
-void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, bool rapidLeftEnabled, bool rapidRightEnabled, String button3text) { // Button3text for future additions
+void elsControlPanel::TFT_writeGearboxInfo(bool Thread, bool Power, Pitch currentPitch, bool rapidLeftEnabled, bool rapidRightEnabled, String button3text) { // Button3text for future additions
     tft.fillScreen(ILI9341_WHITE);
     tft.setCursor(0, 0);
     tft.setTextColor(ILI9341_BLACK);
     tft.setTextSize(3);
     tft.setTextWrap(false);
 
-        if (sysMode == PowerFeed) {
+        if (Power) {
             tft.println("\n  Power Feed\n\n");
             if (currentPitch.units == tpi) {
                 tft.print("  ");
@@ -62,7 +62,7 @@ void elsControlPanel::TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, 
             }
             tft.println("    mm/in");
         }
-        else if (sysMode == Threading) {
+        else if (Thread) {
 
             // If rapid right is enabled
             if (rapidRightEnabled) {

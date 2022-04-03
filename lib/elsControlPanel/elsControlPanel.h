@@ -13,12 +13,6 @@
 // - TFT display: https://www.adafruit.com/product/1480 (wiring info: https://learn.adafruit.com/2-2-tft-display/pinouts)
 // - alphanumeric display: https://www.adafruit.com/product/2157
 
-// Possible modes for the system
-enum ELSMode {
-    Threading,
-    PowerFeed
-};
-
 class elsControlPanel {
     public:
         elsControlPanel(Adafruit_ILI9341 &tftObject, uint8_t rpmReadouti2cAddress = 0x70);
@@ -26,7 +20,7 @@ class elsControlPanel {
         void init();
 
         // Main Utility Functions
-        void TFT_writeGearboxInfo(ELSMode sysMode, Pitch currentPitch, bool rapidLeftEnabled, bool rapidRightEnabled, String button3text);
+        void TFT_writeGearboxInfo(bool Thread, bool Power, Pitch currentPitch, bool rapidLeftEnabled, bool rapidRightEnabled, String button3text);
         // Loading screen upon startup
         void TFT_splashscreen();
         // Update the alphanumeric RPM display

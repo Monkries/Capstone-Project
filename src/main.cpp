@@ -61,12 +61,14 @@ elsControlPanel cPanel(tftObject);
 // Create I2C chip object and pin setup
 Adafruit_MCP23X17 mcp;
 
+// See https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library for table on pin descriptions
+#define INTB_PIN 19    // Interrupt pin
 #define INTA_PIN 20     // Interrupt pin
-#define BTTN_MODEINC 21  // Mode right scroll pin
-#define BTTN_MODEDEC 22  // Mode left scroll pin
-#define BTTN_UNITS 23   // Units toggle pin
-#define BTTN_RAPID 24   // Rapid scroll pin
-#define BTTN_X 25       // Future additions pin
+#define BTTN_MODEINC 0  // Mode right scroll pin
+#define BTTN_MODEDEC 1  // Mode left scroll pin
+#define BTTN_UNITS 2   // Units toggle pin
+#define BTTN_RAPID 3   // Rapid scroll pin
+#define BTTN_X 4       // Future additions pin
 
 
 // Setup function
@@ -76,16 +78,6 @@ void setup()
   spindleEnc.setInitConfig();
   spindleEnc.init();
 
-  // Setup pins for the teensy
-  // pinMode(10, OUTPUT);
-  // pinMode(11, OUTPUT);
-  // pinMode(12, OUTPUT);
-  // pinMode(13, OUTPUT);
-  // pinMode(14, OUTPUT);
-  // pinMode(15, OUTPUT);
-  // pinMode(17, OUTPUT);
-  // pinMode(16, OUTPUT);
- 
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
   zStepper.setAcceleration(500000.0);
@@ -108,48 +100,116 @@ void setup()
   Serial.begin(9600);
   Serial.println("MCP23xxx Button Test!");
 
-  if (!mcp.begin_I2C()) {
-    Serial.println("Error.");
-    // while (1);
-  }
 
-  // pinMode(INTA_PIN, INPUT);
-  // mcp.setupInterrupts(false, false, LOW);
+  // MCP pin setup
+  // Interrupt A pin setup
+  pinMode(INTA_PIN, INPUT);
+  mcp.setupInterrupts(false, false, LOW);
+  mcp.pinMode(BTTN_MODEDEC, INPUT_PULLUP);
+  mcp.pinMode(BTTN_MODEINC, INPUT_PULLUP);
+  mcp.pinMode(BTTN_RAPID,INPUT_PULLUP);
+  mcp.pinMode(BTTN_X, INPUT_PULLUP);
   mcp.pinMode(BTTN_UNITS, INPUT_PULLUP);
-  // mcp.setupInterruptPin(BTTN_UNITS, LOW);
-  Serial.println("Looping...");
+  mcp.setupInterruptPin(BTTN_UNITS, LOW);
+  mcp.setupInterruptPin(BTTN_MODEDEC, LOW);
+  mcp.setupInterruptPin(BTTN_MODEINC, LOW);
+  mcp.setupInterruptPin(BTTN_RAPID, LOW);
+  mcp.setupInterruptPin(BTTN_X, LOW);
+
+  // Interrupt B pin setup
+  pinMode(INTB_PIN, INPUT);
+
 }
 
 void loop()
 {
 
-  // I2C testing
-  // if (!digitalRead(INTA_PIN)) {
-  //   Serial.print("Interrupt detected on pin: ");
-  //   Serial.println(mcp.getLastInterruptPin());
-  // }
-  // delay(250);
+  /////////////////////////////////////////////////////////////////////////////
+  //                              I2C Test                                   //
+  int modenum = 0;
+  int rapidnum = 0;
+  bool Threading = false;
+  bool PowerFeed = false;
+  if (!digitalRead(INTA_PIN)) {
+    if (mcp.digitalRead(BTTN_MODEDEC)) {
+      modenum--;
+      if (modenum < 0) {
+        modenum = 0;
+      }
+    }
+    else if (mcp.digitalRead(BTTN_MODEINC)) {
+      modenum++;
+      if (modenum > 2) {
+        modenum = 2;
+      }
+    }
+    else if (mcp.digitalRead(BTTN_UNITS)) {
+      int unittoggle = 0;
+      if ((unittoggle = 0)) {
+        els.gearbox_pitch = {10, tpi, rightHandThread_feedLeft};
+      }
+      else {
+        els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
+      }
 
-  if (!mcp.digitalRead(BTTN_UNITS)) {
-    Serial.println("Button Pressed!");
-    delay(250);
+    }
+    else if (mcp.digitalRead(BTTN_RAPID)) {
+      rapidnum++;
+        if (rapidnum > 2) {
+          rapidnum = 0;
+        }
+    }
+    else if (mcp.digitalRead(BTTN_X)) {
+      Serial.println("Hello world");
+    }
   }
+
+  // Mode Handling
+  switch (modenum) {
+    case 0: 
+      Threading = false;
+      PowerFeed = false;
+    break;
+    case 1: 
+      Threading = true;
+      PowerFeed = false;
+    break;
+    case 2:
+      Threading = false;
+      PowerFeed = true;
+    break;
+  }
+
+  // Rapid Handling
+  switch (rapidnum)
+  {
+  case 0:
+    els.gearbox_rapidLeft = false;
+    els.gearbox_rapidRight = false;
+  break;
+  case 1:
+    els.gearbox_rapidLeft = true;
+    els.gearbox_rapidRight = false;
+  break;
+  case 2:
+    els.gearbox_rapidLeft = false;
+    els.gearbox_rapidRight = true;
+  break;
+  }
+  delay(250);
+///////////////////////////////////////////////////////////////////////////////////
 
   // RPM display
   // int spindleRpm = (int)round(els.spindleTach.getRPM());
-  // int spindleRpm = 1000;
+  int spindleRpm = 1000;
   // cPanel.alphanum_writeRPM(spindleRpm);
   // cPanel.writeOverspeedLED(spindleRpm);
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   //                                TFT Display test code                                  //
-  // els.gearbox_pitch = {8, tpi, rightHandThread_feedLeft};
-  // els.gearbox_rapidLeft = false;
-  // els.gearbox_rapidRight = false;
-  // cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid off imperial
-  // spindleRpm = 1578;
-  // cPanel.alphanum_writeRPM(spindleRpm);
-  // delay(1000);
+  cPanel.TFT_writeGearboxInfo(Threading, PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid off imperial
+  cPanel.alphanum_writeRPM(spindleRpm);
+  delay(1000);
   // els.gearbox_pitch = {15, tpi, rightHandThread_feedLeft};
   // els.gearbox_rapidLeft = true;
   // cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid Left imperial
