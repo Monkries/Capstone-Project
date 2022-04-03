@@ -118,7 +118,7 @@ void loop()
   Serial.println("NEUTRAL!");
   stopwatch=0;
   els.clutch.disengage();
-  while(stopwatch<5000){
+  while(stopwatch<10){
     els.cycle();
   }
 
@@ -129,7 +129,7 @@ void loop()
   while (stopwatch<10000) {
     motorRunTime=0;
     els.cycle();
-    while (motorRunTime<30){
+    while (motorRunTime<10){
       els.zStepper.run();
     }
   }

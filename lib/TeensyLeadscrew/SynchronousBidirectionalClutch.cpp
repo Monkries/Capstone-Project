@@ -32,11 +32,13 @@ int SynchronousBidirectionalClutch::moveInput(float inputSteps) {
             if (constrainShaftAngle(_clutchState.forwardInputShaftAngle - _clutchState.outputShaftAngle) < lockTolerance) {
                 // Now we know we are within the acceptable range for locking the clutch
 
+                /*
                 // At this point, we need to jog the output shaft slightly for perfect alignment
                 float alignmentSteps = constrainShaftAngle(_clutchState.forwardInputShaftAngle - _clutchState.outputShaftAngle);
                 Serial.print(alignmentSteps);
                 Serial.print(" steps to align, ");
                 _stepQueue.totalValue += alignmentSteps;
+                */
 
                 _clutchState.forwardLocked = true;
                 Serial.print("locked!");
@@ -60,10 +62,12 @@ int SynchronousBidirectionalClutch::moveInput(float inputSteps) {
                 // Now we know we are within the acceptable range for locking the clutch
 
                 // At this point, we need to jog the output shaft slightly for perfect alignment
+                /*
                 float alignmentSteps = constrainShaftAngle(_clutchState.forwardInputShaftAngle - _clutchState.outputShaftAngle);
                 Serial.print(alignmentSteps);
                 Serial.print(" steps to align, ");
                 _stepQueue.totalValue -= alignmentSteps;
+                */
                 
                 _clutchState.reverseLocked = true;
                 Serial.print("locked!");
