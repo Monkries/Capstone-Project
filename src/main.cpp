@@ -62,7 +62,7 @@ elsControlPanel cPanel(tftObject);
 Adafruit_MCP23X17 mcp;
 
 // See https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library for table on pin descriptions
-#define INTB_PIN 19    // Interrupt pin
+// #define INTB_PIN 19    // Interrupt pin
 #define INTA_PIN 20     // Interrupt pin
 #define BTTN_MODEINC 0  // Mode right scroll pin
 #define BTTN_MODEDEC 1  // Mode left scroll pin
@@ -70,6 +70,12 @@ Adafruit_MCP23X17 mcp;
 #define BTTN_RAPID 3   // Rapid scroll pin
 #define BTTN_X 4       // Future additions pin
 
+  int modenum = 0;
+  int rapidnum = 0;
+  bool Threading = true;
+  bool PowerFeed = false;
+  int spindleRpm = 1;
+  int units = 0;
 
 // Setup function
 void setup()
@@ -97,10 +103,6 @@ void setup()
 
   // I2C chip testing
   mcp.begin_I2C();
-  Serial.begin(9600);
-  Serial.println("MCP23xxx Button Test!");
-
-
   // MCP pin setup
   // Interrupt A pin setup
   pinMode(INTA_PIN, INPUT);
@@ -117,49 +119,47 @@ void setup()
   mcp.setupInterruptPin(BTTN_X, LOW);
 
   // Interrupt B pin setup
-  pinMode(INTB_PIN, INPUT);
-
+  // pinMode(INTB_PIN, INPUT);
+  Serial.begin(9600);
 }
 
 void loop()
 {
-
+  Serial.println(units);
   /////////////////////////////////////////////////////////////////////////////
-  //                              I2C Test                                   //
-  int modenum = 0;
-  int rapidnum = 0;
-  bool Threading = false;
-  bool PowerFeed = false;
+  //                              I2C Buttons                                //
   if (!digitalRead(INTA_PIN)) {
-    if (mcp.digitalRead(BTTN_MODEDEC)) {
-      modenum--;
+    if (!mcp.digitalRead(BTTN_MODEDEC)) {
+      modenum = modenum - 1;      
       if (modenum < 0) {
         modenum = 0;
       }
     }
-    else if (mcp.digitalRead(BTTN_MODEINC)) {
-      modenum++;
-      if (modenum > 2) {
-        modenum = 2;
+    if (!mcp.digitalRead(BTTN_MODEINC)) {
+      modenum = modenum + 1;
+      if (modenum > 1) {
+        modenum = 1;
       }
     }
-    else if (mcp.digitalRead(BTTN_UNITS)) {
-      int unittoggle = 0;
-      if ((unittoggle = 0)) {
-        els.gearbox_pitch = {10, tpi, rightHandThread_feedLeft};
+    if (!mcp.digitalRead(BTTN_UNITS)) {
+      units++;
+      if ((units = 0)) {
+        els.gearbox_pitch = {5, tpi, rightHandThread_feedLeft};
       }
       else {
-        els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
+        els.gearbox_pitch = {5, mm, rightHandThread_feedLeft};
       }
-
+      if (units > 1) {
+        units = 0;
+      }
     }
-    else if (mcp.digitalRead(BTTN_RAPID)) {
-      rapidnum++;
+    if (!mcp.digitalRead(BTTN_RAPID)) {
+      rapidnum = rapidnum + 1;
         if (rapidnum > 2) {
           rapidnum = 0;
         }
     }
-    else if (mcp.digitalRead(BTTN_X)) {
+    else if (!mcp.digitalRead(BTTN_X)) {
       Serial.println("Hello world");
     }
   }
@@ -168,21 +168,16 @@ void loop()
   switch (modenum) {
     case 0: 
       Threading = false;
-      PowerFeed = false;
+      PowerFeed = true;
     break;
     case 1: 
       Threading = true;
       PowerFeed = false;
     break;
-    case 2:
-      Threading = false;
-      PowerFeed = true;
-    break;
   }
 
-  // Rapid Handling
-  switch (rapidnum)
-  {
+  // // Rapid Handling
+  switch (rapidnum) {
   case 0:
     els.gearbox_rapidLeft = false;
     els.gearbox_rapidRight = false;
@@ -196,49 +191,17 @@ void loop()
     els.gearbox_rapidRight = true;
   break;
   }
-  delay(250);
+  delay(500);
 ///////////////////////////////////////////////////////////////////////////////////
 
   // RPM display
   // int spindleRpm = (int)round(els.spindleTach.getRPM());
-  int spindleRpm = 1000;
-  // cPanel.alphanum_writeRPM(spindleRpm);
-  // cPanel.writeOverspeedLED(spindleRpm);
+  spindleRpm++;
 
-  ///////////////////////////////////////////////////////////////////////////////////////////
-  //                                TFT Display test code                                  //
-  cPanel.TFT_writeGearboxInfo(Threading, PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid off imperial
   cPanel.alphanum_writeRPM(spindleRpm);
-  delay(1000);
-  // els.gearbox_pitch = {15, tpi, rightHandThread_feedLeft};
-  // els.gearbox_rapidLeft = true;
-  // cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid Left imperial
-  // delay(1000);
-  // els.gearbox_rapidLeft = false;
-  // els.gearbox_rapidRight = true;
-  // cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid right imperial
-  // spindleRpm = 700;
-  // cPanel.alphanum_writeRPM(spindleRpm);
-  // delay(1000);
-  // els.gearbox_pitch = {9, mm, rightHandThread_feedLeft};
-  // cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid right metric
-  // delay(1000);
-  // els.gearbox_rapidLeft = true;
-  // els.gearbox_rapidRight = false;
-  // cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid left metric
-  // delay(1000);
-  // els.gearbox_rapidLeft = false;
-  // cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid off metric
-  // delay(1000);
-  // els.gearbox_pitch = {10, tpi, rightHandThread_feedLeft};
-  // cPanel.TFT_writeGearboxInfo(PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Power feed imperial
-  // spindleRpm = 3000;
-  // cPanel.alphanum_writeRPM(spindleRpm);
-  // delay(1000);
-  // els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
-  // cPanel.TFT_writeGearboxInfo(PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Power feed metric
-  // delay(1000);
-  //////////////////////////////////////////////////////////////////////////////////////////
+  cPanel.writeOverspeedLED(spindleRpm);
+
+  cPanel.TFT_writeGearboxInfo(Threading, PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button");
   els.cycle();
 
 }
