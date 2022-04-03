@@ -6,7 +6,7 @@
 #include "QuadEncoder.h"
 #include "EncoderTach.h"
 #include "IntegerStepHelper.h"
-#include "SynchronousClutch.h"
+#include "SynchronousBidirectionalClutch.h"
 
 // PITCH DATA TYPE
 // Can describe a feed rate or a thread pitch (tpi, in/rev, or mm/rev)
@@ -82,7 +82,7 @@ class TeensyLeadscrew {
     float calculateMotorSteps(int encoderTicks); // Given encoder movement (and gearbox settings configured elsewhere) find number of steps to move, INDEPENDENT OF DIRECTION
 
     // Clutch state info
-    SynchronousClutch clutch;
+    SynchronousBidirectionalClutch clutch;
 
     IntegerStepHelper queuedMotorSteps; // This is a helper class to make sure we keep track of fractional steps across cycles
 };

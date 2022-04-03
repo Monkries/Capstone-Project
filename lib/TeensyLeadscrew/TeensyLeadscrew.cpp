@@ -3,7 +3,7 @@
 #include "QuadEncoder.h"
 #include "EncoderTach.h"
 #include "TeensyLeadscrew.h"
-#include "SynchronousClutch.h"
+#include "SynchronousBidirectionalClutch.h"
 
 
 TeensyLeadscrew::TeensyLeadscrew(QuadEncoder &arg_spindleEncoder,
@@ -50,7 +50,7 @@ void TeensyLeadscrew::cycle() {
 
     // Encoder --> calculateMotorSteps --> clutch.move
     // Spindle --> gearbox --------------> feed clutch
-    queuedMotorSteps.totalValue += clutch.move( calculateMotorSteps(relativeEncoderMovement) );
+    queuedMotorSteps.totalValue += clutch.moveInput( calculateMotorSteps(relativeEncoderMovement) );
 
     zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
     // Actually move the motor
