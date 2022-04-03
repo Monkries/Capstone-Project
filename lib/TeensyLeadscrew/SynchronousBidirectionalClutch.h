@@ -19,7 +19,7 @@ struct BidirectionalClutchStatus {
 
 class SynchronousBidirectionalClutch {
     public:
-    SynchronousBidirectionalClutch(float stepsPerRev=2000.0);
+    SynchronousBidirectionalClutch(float stepsPerRev=2000.0, float lockTolerance=20.0);
 
     // Move the "input shaft" on the virtual clutch
     int moveInput(float relativeSteps);
@@ -32,6 +32,11 @@ class SynchronousBidirectionalClutch {
     void engageForward();
     void engageReverse();
     void disengage();
+
+    // When waiting for the clutch to lock, this determines how close to perfect alignment is considered "close enough"
+    // 0 requires perfect alignment (not recommended)
+    // The system will jog the motor to correct misalignment to avoid accumulated error over time
+    float lockTolerance = 0;
 
     private:
     // Helpers/internal stuff

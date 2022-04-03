@@ -3,8 +3,9 @@
 #include "IntegerStepHelper.h"
 #include "SynchronousBidirectionalClutch.h"
 
-SynchronousBidirectionalClutch::SynchronousBidirectionalClutch(float stepsPerRev_arg) {
+SynchronousBidirectionalClutch::SynchronousBidirectionalClutch(float stepsPerRev_arg, float lockTolerance_arg) {
     _stepsPerRev = stepsPerRev_arg;
+    lockTolerance = lockTolerance_arg;
 }
 
 int SynchronousBidirectionalClutch::moveInput(float inputSteps) {
@@ -28,7 +29,15 @@ int SynchronousBidirectionalClutch::moveInput(float inputSteps) {
             // The clutch is engaged, but not locked yet (we are in the "waiting for sync" mode)
             Serial.print("Forward clutch checking for lock, ");
             // See if we are hitting the lock point
-            if (abs(_clutchState.forwardInputShaftAngle - _clutchState.outputShaftAngle) < 20) {
+            if (constrainShaftAngle(_clutchState.forwardInputShaftAngle - _clutchState.outputShaftAngle) < lockTolerance) {
+                // Now we know we are within the acceptable range for locking the clutch
+
+                // At this point, we need to jog the output shaft slightly for perfect alignment
+                float alignmentSteps = constrainShaftAngle(_clutchState.forwardInputShaftAngle - _clutchState.outputShaftAngle);
+                Serial.print(alignmentSteps);
+                Serial.print(" steps to align, ");
+                _stepQueue.totalValue += alignmentSteps;
+
                 _clutchState.forwardLocked = true;
                 Serial.print("locked!");
             }
@@ -47,7 +56,15 @@ int SynchronousBidirectionalClutch::moveInput(float inputSteps) {
             // The clutch is engaged, but not locked yet (we are in the "waiting for sync" mode)
             Serial.print("Reverse clutch checking for lock, ");
             // See if we are hitting the lock point
-            if (abs(_clutchState.reverseInputShaftAngle - _clutchState.outputShaftAngle) < 20) {
+            if (constrainShaftAngle(_clutchState.reverseInputShaftAngle - _clutchState.outputShaftAngle) < lockTolerance) {
+                // Now we know we are within the acceptable range for locking the clutch
+
+                // At this point, we need to jog the output shaft slightly for perfect alignment
+                float alignmentSteps = constrainShaftAngle(_clutchState.forwardInputShaftAngle - _clutchState.outputShaftAngle);
+                Serial.print(alignmentSteps);
+                Serial.print(" steps to align, ");
+                _stepQueue.totalValue -= alignmentSteps;
+                
                 _clutchState.reverseLocked = true;
                 Serial.print("locked!");
             }
