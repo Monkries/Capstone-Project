@@ -11,6 +11,7 @@
 #include <elsControlPanel.h>
 #include "Adafruit_LEDBackpack.h"
 #include "Adafruit_MCP23X17.h"
+#include "Bounce2mcp.h"
 
 
 // Debugging stuff
@@ -60,6 +61,7 @@ elsControlPanel cPanel(tftObject);
 
 // Create I2C chip object and pin setup
 Adafruit_MCP23X17 mcp;
+BounceMcp debounce = BounceMcp();
 
 // See https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library for table on pin descriptions
 // #define INTB_PIN 19    // Interrupt pin
@@ -75,7 +77,7 @@ Adafruit_MCP23X17 mcp;
   bool Threading = true;
   bool PowerFeed = false;
   int spindleRpm = 1;
-  int units = 0;
+  int units = 1;
 
 // Setup function
 void setup()
@@ -102,6 +104,9 @@ void setup()
   delay(2000);
 
   // I2C chip testing
+  
+
+
   mcp.begin_I2C();
   // MCP pin setup
   // Interrupt A pin setup
@@ -118,6 +123,8 @@ void setup()
   mcp.setupInterruptPin(BTTN_RAPID, LOW);
   mcp.setupInterruptPin(BTTN_X, LOW);
 
+  debounce.attach(mcp, BTTN_RAPID, 5);
+
   // Interrupt B pin setup
   // pinMode(INTB_PIN, INPUT);
   Serial.begin(9600);
@@ -125,6 +132,7 @@ void setup()
 
 void loop()
 {
+  debounce.update();
   Serial.println(units);
   /////////////////////////////////////////////////////////////////////////////
   //                              I2C Buttons                                //
@@ -143,21 +151,23 @@ void loop()
     }
     if (!mcp.digitalRead(BTTN_UNITS)) {
       units++;
-      if ((units = 0)) {
+      if ((units = 1)) {
         els.gearbox_pitch = {5, tpi, rightHandThread_feedLeft};
       }
       else {
         els.gearbox_pitch = {5, mm, rightHandThread_feedLeft};
       }
-      if (units > 1) {
-        units = 0;
+      if (units > 2) {
+        units = 1;
       }
     }
-    if (!mcp.digitalRead(BTTN_RAPID)) {
-      rapidnum = rapidnum + 1;
-        if (rapidnum > 2) {
-          rapidnum = 0;
-        }
+    if (debounce.fell()) {
+      if (!mcp.digitalRead(BTTN_RAPID)) {
+        rapidnum = rapidnum + 1;
+          if (rapidnum > 2) {
+            rapidnum = 0;
+          }
+      }
     }
     else if (!mcp.digitalRead(BTTN_X)) {
       Serial.println("Hello world");
@@ -191,8 +201,8 @@ void loop()
     els.gearbox_rapidRight = true;
   break;
   }
-  delay(500);
-///////////////////////////////////////////////////////////////////////////////////
+  // delay(500);
+  ///////////////////////////////////////////////////////////////////////////////////
 
   // RPM display
   // int spindleRpm = (int)round(els.spindleTach.getRPM());
