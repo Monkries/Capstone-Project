@@ -19,7 +19,7 @@
   (pad "1" thru_hole circle (at 3.556 2.286) (size 3.81 3.81) (drill 2.54) (layers *.Cu *.Mask) (tstamp 96ef76a5-90c3-4767-98ba-2b61887e28d3))
   (pad "2" thru_hole circle (at 3.556 6.6675) (size 3.81 3.81) (drill 2.54) (layers *.Cu *.Mask) (tstamp 12fa3c3f-3d14-451a-a6a8-884fd1b32fa7))
   (pad "3" thru_hole circle (at 3.556 11.176) (size 3.81 3.81) (drill 2.54) (layers *.Cu *.Mask) (tstamp 1cacb878-9da4-41fc-aa80-018bc841e19a))
-  (model "D:/Users/Hampton/Documents/OSS/Electroturn/Capstone-Project/Hardware/footprints/Electroturn_Parts.pretty/FeedSwitch_SPDTfromECEdept/Final_McMaster_7347K11_SimilarToFeedSwitch.STEP"
+  (model "${KIPRJMOD}/footprints/Electroturn_Parts.pretty/FeedSwitch_SPDTfromECEdept/Final_McMaster_7347K11_SimilarToFeedSwitch.step"
     (offset (xyz 2.7305 -0.9525 14.986))
     (scale (xyz 1 1 1))
     (rotate (xyz 0 0 180))
