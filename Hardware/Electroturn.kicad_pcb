@@ -831,7 +831,7 @@
 
   (footprint "Capacitor_THT:C_Disc_D6.0mm_W2.5mm_P5.00mm" (layer "B.Cu")
     (tedit 5AE50EF0) (tstamp 1ee3dc48-8cba-4d55-baee-99d61bca8a95)
-    (at 190.5 43.18 180)
+    (at 185.38 46.99 180)
     (descr "C, Disc series, Radial, pin pitch=5.00mm, , diameter*width=6*2.5mm^2, Capacitor, http://cdn-reichelt.de/documents/datenblatt/B300/DS_KERKO_TC.pdf")
     (tags "C Disc series Radial pin pitch 5.00mm  diameter 6mm width 2.5mm Capacitor")
     (property "Sheetfile" "Electroturn.kicad_sch")
@@ -1077,7 +1077,7 @@
 
   (footprint "Resistor_THT:R_Axial_DIN0411_L9.9mm_D3.6mm_P12.70mm_Horizontal" (layer "B.Cu")
     (tedit 5AE5139B) (tstamp 7fe6591b-8f40-443d-8aeb-5a9e439d5b11)
-    (at 198.12 38.1 180)
+    (at 180.34 52.07 180)
     (descr "Resistor, Axial_DIN0411 series, Axial, Horizontal, pin pitch=12.7mm, 1W, length*diameter=9.9*3.6mm^2")
     (tags "Resistor Axial_DIN0411 series Axial Horizontal pin pitch 12.7mm 1W length 9.9mm diameter 3.6mm")
     (property "Sheetfile" "Electroturn.kicad_sch")
@@ -1125,7 +1125,7 @@
 
   (footprint "Resistor_THT:R_Axial_DIN0411_L9.9mm_D3.6mm_P12.70mm_Horizontal" (layer "B.Cu")
     (tedit 5AE5139B) (tstamp 84625814-3c34-4997-9c1c-566a30048a0f)
-    (at 223.52 48.26 180)
+    (at 200.66 67.31 180)
     (descr "Resistor, Axial_DIN0411 series, Axial, Horizontal, pin pitch=12.7mm, 1W, length*diameter=9.9*3.6mm^2")
     (tags "Resistor Axial_DIN0411 series Axial Horizontal pin pitch 12.7mm 1W length 9.9mm diameter 3.6mm")
     (property "Sheetfile" "Electroturn.kicad_sch")
@@ -1173,7 +1173,7 @@
 
   (footprint "Capacitor_THT:C_Disc_D6.0mm_W2.5mm_P5.00mm" (layer "B.Cu")
     (tedit 5AE50EF0) (tstamp 8d495700-c675-4080-b7a2-5c90d83d311f)
-    (at 199.35 43.18 180)
+    (at 176.57 66.04)
     (descr "C, Disc series, Radial, pin pitch=5.00mm, , diameter*width=6*2.5mm^2, Capacitor, http://cdn-reichelt.de/documents/datenblatt/B300/DS_KERKO_TC.pdf")
     (tags "C Disc series Radial pin pitch 5.00mm  diameter 6mm width 2.5mm Capacitor")
     (property "Sheetfile" "Electroturn.kicad_sch")
@@ -1206,9 +1206,9 @@
     (fp_line (start 5.5 1.25) (end -0.5 1.25) (layer "B.Fab") (width 0.1) (tstamp 2eb5c7ae-ece1-4fed-b4e9-592cfba8365c))
     (fp_line (start 5.5 -1.25) (end 5.5 1.25) (layer "B.Fab") (width 0.1) (tstamp 802934f8-7c36-4345-a27f-3454fedf92f5))
     (fp_line (start -0.5 -1.25) (end 5.5 -1.25) (layer "B.Fab") (width 0.1) (tstamp d877237b-ec99-4b5c-877c-78f09f24b4c8))
-    (pad "1" thru_hole circle (at 0 0 180) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask)
+    (pad "1" thru_hole circle (at 0 0) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask)
       (net 17 "/panelEncoder_B") (pintype "passive") (tstamp 6dbeb271-70cf-48a4-af15-4f29601b6b93))
-    (pad "2" thru_hole circle (at 5 0 180) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask)
+    (pad "2" thru_hole circle (at 5 0) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask)
       (net 1 "GND") (pintype "passive") (tstamp 221716b4-71b4-492e-a69e-458b8376bbcc))
     (model "${KICAD6_3DMODEL_DIR}/Capacitor_THT.3dshapes/C_Disc_D6.0mm_W2.5mm_P5.00mm.wrl"
       (offset (xyz 0 0 0))
@@ -1219,7 +1219,7 @@
 
   (footprint "Resistor_THT:R_Axial_DIN0411_L9.9mm_D3.6mm_P12.70mm_Horizontal" (layer "B.Cu")
     (tedit 5AE5139B) (tstamp 9c465d0a-3acf-44e4-926b-a8e6ae8ccd7b)
-    (at 201.93 38.1)
+    (at 193.04 48.26)
     (descr "Resistor, Axial_DIN0411 series, Axial, Horizontal, pin pitch=12.7mm, 1W, length*diameter=9.9*3.6mm^2")
     (tags "Resistor Axial_DIN0411 series Axial Horizontal pin pitch 12.7mm 1W length 9.9mm diameter 3.6mm")
     (property "Sheetfile" "Electroturn.kicad_sch")
@@ -1267,7 +1267,7 @@
 
   (footprint "Resistor_THT:R_Axial_DIN0411_L9.9mm_D3.6mm_P12.70mm_Horizontal" (layer "B.Cu")
     (tedit 5AE5139B) (tstamp a02123a2-48d6-42d7-8224-1acec1028ae3)
-    (at 215.9 43.18 180)
+    (at 180.34 57.15 180)
     (descr "Resistor, Axial_DIN0411 series, Axial, Horizontal, pin pitch=12.7mm, 1W, length*diameter=9.9*3.6mm^2")
     (tags "Resistor Axial_DIN0411 series Axial Horizontal pin pitch 12.7mm 1W length 9.9mm diameter 3.6mm")
     (property "Sheetfile" "Electroturn.kicad_sch")
