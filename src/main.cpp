@@ -20,7 +20,7 @@
 
 // System Specs
 LatheHardwareInfo sysSpecs = {
-  1.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
+  -1.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
   8000, // encoderTicksPerRev
   2000, // stepsPerRev : usable steps per rev, including microsteps
   1000000, // maxStepRate : maximum allowable rate for stepper motor (steps per sec)
@@ -57,7 +57,10 @@ Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 // Create control panel class
 elsControlPanel cPanel(tftObject);
 
-// Setup function
+// Temporary Global Variables for Testing
+IntegerStepHelper queuedSteps;
+int absoluteEncoderPosition=0;
+
 void setup()
 {
   // Initialize spindle encoder
@@ -76,57 +79,83 @@ void setup()
  
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
-  zStepper.setAcceleration(500000.0);
+  zStepper.setAcceleration(100000.0);
 
   // Initialize control panel hardware
   cPanel.init();
 
   // Initialize electronic leadscrew backend
   els.init();
+  
+  // Start the TFT splash screen
+  cPanel.TFT_splashscreen();
 
   // Test Config for screw, 20tpi, no rapids
   els.gearbox_enableMotorBraking = true;
   els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
   els.engageZFeedLeft();
-  cPanel.TFT_splashscreen();
-  delay(2000);
+  els.clutchState.engaged = false;
+  els.clutchState.locked = true;
 }
 
 void loop()
 {
-  ///////////////////////////////////////////////////////////////////////////////////////////
-  //                                TFT Display test code                                  //
-  els.gearbox_pitch = {8, tpi, rightHandThread_feedLeft};
-  els.gearbox_rapidLeft = false;
-  els.gearbox_rapidRight = false;
-  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid off imperial
-  delay(5000);
-  els.gearbox_pitch = {15, tpi, rightHandThread_feedLeft};
-  els.gearbox_rapidLeft = true;
-  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid Left imperial
-  delay(5000);
-  els.gearbox_rapidLeft = false;
-  els.gearbox_rapidRight = true;
-  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid right imperial
-  delay(5000);
-  els.gearbox_pitch = {9, mm, rightHandThread_feedLeft};
-  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid right metric
-  delay(5000);
-  els.gearbox_rapidLeft = true;
-  els.gearbox_rapidRight = false;
-  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid left metric
-  delay(5000);
-  els.gearbox_rapidLeft = false;
-  cPanel.TFT_writeGearboxInfo(Threading, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Rapid off metric
-  delay(5000);
-  els.gearbox_pitch = {10, tpi, rightHandThread_feedLeft};
-  cPanel.TFT_writeGearboxInfo(PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Power feed imperial
-  delay(5000);
-  els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
-  cPanel.TFT_writeGearboxInfo(PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button"); // Power feed metric
-  delay(5000);
-  //////////////////////////////////////////////////////////////////////////////////////////
-  els.cycle();
+  // This code (until "WORKING TEST CODE #1") engages the clutch 10 seconds, then disengages for 10 seconds, then repeats (for testing sync)
+  elapsedMillis stopwatch;
+
+  // Feed normally 10sec
+  Serial.println("ENGAGING FWD FEED");
+  els.clutchState.engaged = true;
+  while (stopwatch<10000) {
+    els.cycle();
+  }
+
+  els.zStepper.runToPosition();
+
+  // Feed neutral for 10 sec
+  stopwatch=0;
+  Serial.println("DISENGAGING FEED");
+
+  els.clutchState.engaged = false;
+  els.clutchState.locked = false;
+  els.clutchState.inputShaftAngle = 0;
+  els.encoderTicksRecorded=0;
+
+  while (stopwatch<5000) {
+    els.cycle();
+  }
+
+  /*
+  // WORKING TEST CODE #1
+  absoluteEncoderPosition = els.spindleEncoder.read();
+  queuedSteps.totalValue = els.calculateMotorSteps(absoluteEncoderPosition);
+  els.zStepper.moveTo(queuedSteps.getIntegerPart());
+  els.zStepper.run();
+  */
+
+  /*
+  // WORKING TEST CODE #2
+  // This has the stepper motor in absolute coordinates, but the encoder in relative coordinates
+  int relativeEncoderMovement = els.spindleEncoder.read();
+  if (relativeEncoderMovement!=0) {
+      els.spindleEncoder.write(0); // This IF keeps us from losing "unfinished" steps by zeroing midway through a pulse train
+  }
+  queuedSteps.totalValue += els.calculateMotorSteps(relativeEncoderMovement);
+  els.zStepper.moveTo(queuedSteps.getIntegerPart());
+  els.zStepper.run();
+  */
+
+  /*
+  // WORKING TEST CODE #3
+  // Both encoder and stepper in relative coordinates
+  int relativeEncoderMovement = els.spindleEncoder.read();
+  if (relativeEncoderMovement!=0) {
+      els.spindleEncoder.write(0); // This IF keeps us from losing "unfinished" steps by zeroing midway through a pulse train
+  }
+  queuedSteps.totalValue += els.calculateMotorSteps(relativeEncoderMovement);
+  els.zStepper.move(queuedSteps.popIntegerPart()+els.zStepper.distanceToGo());
+  els.zStepper.run();
+  */
 
   // RPM display
   int spindleRpm = (int)round(els.spindleTach.getRPM());
