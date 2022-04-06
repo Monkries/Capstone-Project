@@ -9,6 +9,8 @@
 #include "Adafruit_LEDBackpack.h" // for alphanumeric rpm display
 #include "Adafruit_MCP23X17.h"
 
+// Misc helpers for control panel class
+
 // Maps physical pin labels on chip (GPA0, GPB3, etc) to the correct integer pin numbers for the Adafruit library
 enum MCP23017_GPIO_Mapping {
     GPA0,
@@ -29,16 +31,25 @@ enum MCP23017_GPIO_Mapping {
     GPB7,
 };
 
+// Possible states for cPanelFeedSwitch
+enum cPanelFeedSwitchState {
+    left_towardHeadstock,
+    neutral,
+    right_towardTailstock,
+};
+
+// Structs for control panel devices
+
 struct cPanelButton {
     bool pressedNow;
     unsigned int unhandledFells;
     MCP23017_GPIO_Mapping mcpPin;
 };
 
-enum cPanelFeedSwitch {
-    left_towardHeadstock,
-    neutral,
-    right_towardTailstock,
+struct cPanelFeedSwitch {
+    cPanelFeedSwitchState currentState;
+    MCP23017_GPIO_Mapping leftPin; // the pin that goes LOW when it's set to feed left
+    MCP23017_GPIO_Mapping rightPin; // the pin that goes LOW when it's set to feed right
 };
 
 // This is meant to work with:
@@ -71,7 +82,7 @@ class elsControlPanel {
 
         bool motorBrakingSwitch; // True to enable motor braking
         
-        cPanelFeedSwitch feedSwitch = neutral; // left, neutral, or right
+        cPanelFeedSwitch feedSwitch = {neutral, GPB0, GPB1};
         // ^^ neutral is the initial state just for safety reasons
 
         // Buttons
