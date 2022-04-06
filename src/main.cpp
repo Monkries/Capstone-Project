@@ -22,7 +22,7 @@
 
 // System Specs
 LatheHardwareInfo sysSpecs = {
-  1.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
+  -1.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
   8000, // encoderTicksPerRev
   2000, // stepsPerRev : usable steps per rev, including microsteps
   1000000, // maxStepRate : maximum allowable rate for stepper motor (steps per sec)
@@ -83,7 +83,10 @@ BounceMcp debounce = BounceMcp();
   int spindleRpm = 1;
   int units = 1;
 
-// Setup function
+// Temporary Global Variables for Testing
+IntegerStepHelper queuedSteps;
+int absoluteEncoderPosition=0;
+
 void setup()
 {
   // Initialize spindle encoder
@@ -92,18 +95,22 @@ void setup()
 
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
-  zStepper.setAcceleration(500000.0);
+  zStepper.setAcceleration(100000.0);
 
   // Initialize control panel hardware
   cPanel.init();
 
   // Initialize electronic leadscrew backend
   els.init();
+  
+  // Start the TFT splash screen
+  cPanel.TFT_splashscreen();
 
   // Test Config for screw, 20tpi, no rapids
   els.gearbox_enableMotorBraking = true;
   els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
   els.engageZFeedLeft();
+  
   cPanel.TFT_splashscreen();
   delay(2000);
 
