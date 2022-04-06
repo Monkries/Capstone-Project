@@ -51,13 +51,17 @@ TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 500);
 */
 Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 
+// Control Panel Encoder
+// Hardware quadrature channel 2, phase A on pin 0, phase B on pin 1
+QuadEncoder panelEnc(2, 0, 1, 0);
+
 // Alphanumeric Display (for RPM) Pin Info
 // SDA -> 18
 // SCL -> 19
 // We don't actually have to deal with this here, because the class is forced to use the hardware i2c pins
 
 // Create control panel class
-elsControlPanel cPanel(tftObject);
+elsControlPanel cPanel(tftObject, panelEnc);
 
 // Create I2C chip object and pin setup
 Adafruit_MCP23X17 mcp;
