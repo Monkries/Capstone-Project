@@ -9,10 +9,30 @@
 #include "Adafruit_LEDBackpack.h" // for alphanumeric rpm display
 #include "Adafruit_MCP23X17.h"
 
+// Maps physical pin labels on chip (GPA0, GPB3, etc) to the correct integer pin numbers for the Adafruit library
+enum MCP23017_GPIO_Mapping {
+    GPA0,
+    GPA1,
+    GPA2,
+    GPA3,
+    GPA4,
+    GPA5,
+    GPA6,
+    GPA7,
+    GPB0,
+    GPB1,
+    GPB2,
+    GPB3,
+    GPB4,
+    GPB5,
+    GPB6,
+    GPB7,
+};
+
 struct cPanelButton {
     bool pressedNow;
     unsigned int unhandledFells;
-    int mcpPin; // The pin number corresponding to this button (IN THE MCP LIBRARY, NOT THE PHYSICAL PIN NUMBER ON THE CHIP) 
+    MCP23017_GPIO_Mapping mcpPin;
 };
 
 enum cPanelFeedSwitch {
@@ -55,11 +75,11 @@ class elsControlPanel {
         // ^^ neutral is the initial state just for safety reasons
 
         // Buttons
-        cPanelButton modeRightBtn = {false, 0, 9};
-        cPanelButton modeLeftBtn;
-        cPanelButton function1Btn;
-        cPanelButton function2Btn;
-        cPanelButton function3Btn;
+        cPanelButton modeRightBtn = {false, 0, GPA0};
+        cPanelButton modeLeftBtn = {false, 0, GPA1};
+        cPanelButton function1Btn = {false, 0, GPA2};
+        cPanelButton function2Btn = {false, 0, GPA3};
+        cPanelButton function3Btn = {false, 0, GPA4};
 
         // Under-the-hood hardware objects
         private:
