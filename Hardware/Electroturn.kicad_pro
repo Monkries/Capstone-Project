@@ -452,7 +452,7 @@
       "idf": "",
       "netlist": "../../../../../../Program Files/KiCad/6.0/bin/",
       "specctra_dsn": "",
-      "step": "",
+      "step": "gerbers/Electroturn_Assembly_v1_withMountingHoles.step",
       "vrml": ""
     },
     "page_layout_descr_file": ""
