@@ -20,7 +20,7 @@
 
 // System Specs
 LatheHardwareInfo sysSpecs = {
-  -1.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
+  2.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
   8000, // encoderTicksPerRev
   2000, // stepsPerRev : usable steps per rev, including microsteps
   1000000, // maxStepRate : maximum allowable rate for stepper motor (steps per sec)
@@ -60,6 +60,8 @@ elsControlPanel cPanel(tftObject);
 // Temporary Global Variables for Testing
 IntegerStepHelper queuedSteps;
 int absoluteEncoderPosition=0;
+const int feedFwdPin = 13;
+const int feedRevPin = 14;
 
 void setup()
 {
@@ -92,55 +94,37 @@ void setup()
 
   // Test Config for screw, 20tpi, no rapids
   els.gearbox.enableMotorBraking = true;
-  els.gearbox.configuredPitch = {20, tpi, rightHandThread_feedLeft};
-  
+  els.gearbox.configuredPitch = {13, tpi, rightHandThread_feedLeft};
+
+  // TEMPORARY ON LATHE TESTING
+  pinMode(feedFwdPin, INPUT_PULLUP);
+  pinMode(feedRevPin, INPUT_PULLUP);
 }
 
 void loop()
 {
-  elapsedMillis motorRunTime=0;
-  elapsedMillis stopwatch=0;
+  BidirectionalClutchStatus clutchStatus = els.clutch.getClutchStatus();
 
-
-  // Feed Forward 10 seconds
-  Serial.println("FORWARD!");
-  stopwatch=0;
-  els.clutch.engageForward();
-  while (stopwatch<10000) {
-    motorRunTime=0;
-    els.cycle();
-    while (motorRunTime<30){
-      els.zStepper.run();
-    }
+  if (digitalRead(feedFwdPin) == LOW) {
+    // Feed forward
+    els.clutch.engageForward();
+  }
+  else if (digitalRead(feedRevPin) == LOW) {
+    // Feed reverse
+    els.clutch.engageReverse();
+  }
+  else {
+    // Feed neutral
+    els.clutch.disengage();
   }
 
-  // Feed Neutral 5 seconds
-  Serial.println("NEUTRAL!");
-  stopwatch=0;
-  els.clutch.disengage();
-  while(stopwatch<10){
-    els.cycle();
+  els.cycle();
+
+  elapsedMillis motorTime = 0;
+  while (motorTime < 10) {
+    els.zStepper.run();
   }
 
-  // Feed Reverse 10 seconds
-  Serial.println("REVERSE!");
-  stopwatch=0;
-  els.clutch.engageReverse();
-  while (stopwatch<10000) {
-    motorRunTime=0;
-    els.cycle();
-    while (motorRunTime<10){
-      els.zStepper.run();
-    }
-  }
-
-  // Feed Neutral 5 seconds
-  Serial.println("NEUTRAL!");
-  stopwatch=0;
-  els.clutch.disengage();
-  while(stopwatch<5000){
-    els.cycle();
-  }
 
   /*
   // WORKING TEST CODE #1

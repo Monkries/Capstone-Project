@@ -117,6 +117,11 @@ void SynchronousBidirectionalClutch::engageReverse() {
     }
 }
 
+// Return the status of the clutch
+BidirectionalClutchStatus SynchronousBidirectionalClutch::getClutchStatus() {
+    return _clutchState;
+}
+
 float SynchronousBidirectionalClutch::constrainShaftAngle(float input) {
     float output = fmod(input, _stepsPerRev); // This will get us part of the way there, but allows negative angles (meaning -90 and 270 are considered different)
     if (output<0) {
