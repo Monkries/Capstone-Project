@@ -20,7 +20,7 @@
 
 // System Specs
 LatheHardwareInfo sysSpecs = {
-  -1.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
+  2.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
   8000, // encoderTicksPerRev
   2000, // stepsPerRev : usable steps per rev, including microsteps
   1000000, // maxStepRate : maximum allowable rate for stepper motor (steps per sec)
@@ -60,6 +60,8 @@ elsControlPanel cPanel(tftObject);
 // Temporary Global Variables for Testing
 IntegerStepHelper queuedSteps;
 int absoluteEncoderPosition=0;
+const int feedFwdPin = 13;
+const int feedRevPin = 14;
 
 void setup()
 {
@@ -91,39 +93,38 @@ void setup()
   cPanel.TFT_splashscreen();
 
   // Test Config for screw, 20tpi, no rapids
-  els.gearbox_enableMotorBraking = true;
-  els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
-  els.engageZFeedLeft();
-  els.clutchState.engaged = false;
-  els.clutchState.locked = true;
+  els.gearbox.enableMotorBraking = true;
+  els.gearbox.configuredPitch = {13, tpi, rightHandThread_feedLeft};
+
+  // TEMPORARY ON LATHE TESTING
+  pinMode(feedFwdPin, INPUT_PULLUP);
+  pinMode(feedRevPin, INPUT_PULLUP);
 }
 
 void loop()
 {
-  // This code (until "WORKING TEST CODE #1") engages the clutch 10 seconds, then disengages for 10 seconds, then repeats (for testing sync)
-  elapsedMillis stopwatch;
+  BidirectionalClutchStatus clutchStatus = els.clutch.getClutchStatus();
 
-  // Feed normally 10sec
-  Serial.println("ENGAGING FWD FEED");
-  els.clutchState.engaged = true;
-  while (stopwatch<10000) {
-    els.cycle();
+  if (digitalRead(feedFwdPin) == LOW) {
+    // Feed forward
+    els.clutch.engageForward();
+  }
+  else if (digitalRead(feedRevPin) == LOW) {
+    // Feed reverse
+    els.clutch.engageReverse();
+  }
+  else {
+    // Feed neutral
+    els.clutch.disengage();
   }
 
-  els.zStepper.runToPosition();
+  els.cycle();
 
-  // Feed neutral for 10 sec
-  stopwatch=0;
-  Serial.println("DISENGAGING FEED");
-
-  els.clutchState.engaged = false;
-  els.clutchState.locked = false;
-  els.clutchState.inputShaftAngle = 0;
-  els.encoderTicksRecorded=0;
-
-  while (stopwatch<5000) {
-    els.cycle();
+  elapsedMillis motorTime = 0;
+  while (motorTime < 10) {
+    els.zStepper.run();
   }
+
 
   /*
   // WORKING TEST CODE #1
