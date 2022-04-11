@@ -74,12 +74,12 @@ elsControlPanel cPanel(tftObject, panelEnc);
 // #define BTTN_X 4       // Future additions pin
   static unsigned int MAX_RPM = 3000; 
 
-  int modenum = 0;
-  int rapidnum = 0;
-  bool Threading = true;
-  bool PowerFeed = false;
+  // int modenum = 0;
+  // int rapidnum = 0;
+  // bool Threading = true;
+  // bool PowerFeed = false;
   int spindleRpm = 1;
-  int units = 1;
+  // int units = 1;
 
 void setup()
 {
@@ -110,8 +110,6 @@ void setup()
 
   // I2C chip testing
   
-
-
   // mcp.begin_I2C();
   // // MCP pin setup
   // // Interrupt A pin setup

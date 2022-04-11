@@ -10,7 +10,7 @@
 #include "Adafruit_MCP23X17.h"
 #include "Bounce2mcp.h"
 
-static unsigned int MAX_RPM = 3000; 
+
 int modenum = 0;
 int rapidnum = 0;
 bool Threading = true;
@@ -36,24 +36,24 @@ encoder(arg_encoder)
 void elsControlPanel::init() {
     alpha4.begin(rpmReadouti2cAddress); 
     tft.begin();
-    mcp.begin_I2C();
+    i2cIO.begin_I2C();
   
   // MCP pin setup
   // Interrupt A pin setup
   pinMode(INTA_PIN, INPUT);
-  mcp.setupInterrupts(false, false, LOW);
-  mcp.pinMode(BTTN_MODEDEC, INPUT_PULLUP);
-  mcp.pinMode(BTTN_MODEINC, INPUT_PULLUP);
-  mcp.pinMode(BTTN_RAPID,INPUT_PULLUP);
-  mcp.pinMode(BTTN_X, INPUT_PULLUP);
-  mcp.pinMode(BTTN_UNITS, INPUT_PULLUP);
-  mcp.setupInterruptPin(BTTN_UNITS, LOW);
-  mcp.setupInterruptPin(BTTN_MODEDEC, LOW);
-  mcp.setupInterruptPin(BTTN_MODEINC, LOW);
-  mcp.setupInterruptPin(BTTN_RAPID, LOW);
-  mcp.setupInterruptPin(BTTN_X, LOW);
+  i2cIO.setupInterrupts(false, false, LOW);
+  i2cIO.pinMode(BTTN_MODEDEC, INPUT_PULLUP);
+  i2cIO.pinMode(BTTN_MODEINC, INPUT_PULLUP);
+  i2cIO.pinMode(BTTN_RAPID,INPUT_PULLUP);
+  i2cIO.pinMode(BTTN_X, INPUT_PULLUP);
+  i2cIO.pinMode(BTTN_UNITS, INPUT_PULLUP);
+  i2cIO.setupInterruptPin(BTTN_UNITS, LOW);
+  i2cIO.setupInterruptPin(BTTN_MODEDEC, LOW);
+  i2cIO.setupInterruptPin(BTTN_MODEINC, LOW);
+  i2cIO.setupInterruptPin(BTTN_RAPID, LOW);
+  i2cIO.setupInterruptPin(BTTN_X, LOW);
 
-  debounce.attach(mcp, BTTN_RAPID, 5);
+  debounce.attach(i2cIO, BTTN_RAPID, 5);
 
 
 }
@@ -61,39 +61,39 @@ void elsControlPanel::init() {
 // Button Handling
 void elsControlPanel::MCPButtons() {
       if (!digitalRead(INTA_PIN)) {
-    if (!mcp.digitalRead(BTTN_MODEDEC)) {
+    if (!i2cIO.digitalRead(BTTN_MODEDEC)) {
       modenum = modenum - 1;      
       if (modenum < 0) {
         modenum = 0;
       }
     }
-    if (!mcp.digitalRead(BTTN_MODEINC)) {
+    if (!i2cIO.digitalRead(BTTN_MODEINC)) {
       modenum = modenum + 1;
       if (modenum > 1) {
         modenum = 1;
       }
     }
-    if (!mcp.digitalRead(BTTN_UNITS)) {
+    if (!i2cIO.digitalRead(BTTN_UNITS)) {
       units++;
       if ((units = 1)) {
-        els.gearbox_pitch = {5, tpi, rightHandThread_feedLeft};
+        // els.gearbox_pitch = {5, tpi, rightHandThread_feedLeft};
       }
       else {
-        els.gearbox_pitch = {5, mm, rightHandThread_feedLeft};
+        // els.gearbox_pitch = {5, mm, rightHandThread_feedLeft};
       }
       if (units > 2) {
         units = 1;
       }
     }
     if (debounce.fell()) {
-      if (!mcp.digitalRead(BTTN_RAPID)) {
+      if (!i2cIO.digitalRead(BTTN_RAPID)) {
         rapidnum = rapidnum + 1;
           if (rapidnum > 2) {
             rapidnum = 0;
           }
       }
     }
-    else if (!mcp.digitalRead(BTTN_X)) {
+    else if (!i2cIO.digitalRead(BTTN_X)) {
       Serial.println("Hello world");
     }
   }
@@ -113,16 +113,16 @@ void elsControlPanel::MCPButtons() {
   // // Rapid Handling
   switch (rapidnum) {
   case 0:
-    els.gearbox_rapidLeft = false;
-    els.gearbox_rapidRight = false;
+    // els.gearbox_rapidLeft = false;
+    // els.gearbox_rapidRight = false;
   break;
   case 1:
-    els.gearbox_rapidLeft = true;
-    els.gearbox_rapidRight = false;
+    // els.gearbox_rapidLeft = true;
+    // els.gearbox_rapidRight = false;
   break;
   case 2:
-    els.gearbox_rapidLeft = false;
-    els.gearbox_rapidRight = true;
+    // els.gearbox_rapidLeft = false;
+    // els.gearbox_rapidRight = true;
   break;
 
   }
