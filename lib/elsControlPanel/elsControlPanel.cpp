@@ -10,6 +10,20 @@
 #include "Adafruit_MCP23X17.h"
 
 static unsigned int MAX_RPM = 3000; 
+int modenum = 0;
+int rapidnum = 0;
+bool Threading = true;
+bool PowerFeed = false;
+int spindleRpm = 1;
+int units = 1;
+// See https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library for table on pin descriptions
+// #define INTB_PIN 19    // Interrupt pin
+#define INTA_PIN 20     // Interrupt pin
+#define BTTN_MODEINC 0  // Mode right scroll pin
+#define BTTN_MODEDEC 1  // Mode left scroll pin
+#define BTTN_UNITS 2   // Units toggle pin
+#define BTTN_RAPID 3   // Rapid scroll pin
+#define BTTN_X 4       // Future additions pin
 
 elsControlPanel::elsControlPanel(Adafruit_ILI9341 &tftObject, uint8_t arg_rpmReadouti2cAddress) :
 tft(tftObject)
@@ -20,6 +34,96 @@ tft(tftObject)
 void elsControlPanel::init() {
     alpha4.begin(rpmReadouti2cAddress); 
     tft.begin();
+     mcp.begin_I2C();
+  
+  // MCP pin setup
+  // Interrupt A pin setup
+  pinMode(INTA_PIN, INPUT);
+  mcp.setupInterrupts(false, false, LOW);
+  mcp.pinMode(BTTN_MODEDEC, INPUT_PULLUP);
+  mcp.pinMode(BTTN_MODEINC, INPUT_PULLUP);
+  mcp.pinMode(BTTN_RAPID,INPUT_PULLUP);
+  mcp.pinMode(BTTN_X, INPUT_PULLUP);
+  mcp.pinMode(BTTN_UNITS, INPUT_PULLUP);
+  mcp.setupInterruptPin(BTTN_UNITS, LOW);
+  mcp.setupInterruptPin(BTTN_MODEDEC, LOW);
+  mcp.setupInterruptPin(BTTN_MODEINC, LOW);
+  mcp.setupInterruptPin(BTTN_RAPID, LOW);
+  mcp.setupInterruptPin(BTTN_X, LOW);
+
+  debounce.attach(mcp, BTTN_RAPID, 5);
+
+
+}
+
+// Button Handling
+void elsControlPanel::MCPButtons() {
+      if (!digitalRead(INTA_PIN)) {
+    if (!mcp.digitalRead(BTTN_MODEDEC)) {
+      modenum = modenum - 1;      
+      if (modenum < 0) {
+        modenum = 0;
+      }
+    }
+    if (!mcp.digitalRead(BTTN_MODEINC)) {
+      modenum = modenum + 1;
+      if (modenum > 1) {
+        modenum = 1;
+      }
+    }
+    if (!mcp.digitalRead(BTTN_UNITS)) {
+      units++;
+      if ((units = 1)) {
+        els.gearbox_pitch = {5, tpi, rightHandThread_feedLeft};
+      }
+      else {
+        els.gearbox_pitch = {5, mm, rightHandThread_feedLeft};
+      }
+      if (units > 2) {
+        units = 1;
+      }
+    }
+    if (debounce.fell()) {
+      if (!mcp.digitalRead(BTTN_RAPID)) {
+        rapidnum = rapidnum + 1;
+          if (rapidnum > 2) {
+            rapidnum = 0;
+          }
+      }
+    }
+    else if (!mcp.digitalRead(BTTN_X)) {
+      Serial.println("Hello world");
+    }
+  }
+
+  // Mode Handling
+  switch (modenum) {
+    case 0: 
+      Threading = false;
+      PowerFeed = true;
+    break;
+    case 1: 
+      Threading = true;
+      PowerFeed = false;
+    break;
+  }
+
+  // // Rapid Handling
+  switch (rapidnum) {
+  case 0:
+    els.gearbox_rapidLeft = false;
+    els.gearbox_rapidRight = false;
+  break;
+  case 1:
+    els.gearbox_rapidLeft = true;
+    els.gearbox_rapidRight = false;
+  break;
+  case 2:
+    els.gearbox_rapidLeft = false;
+    els.gearbox_rapidRight = true;
+  break;
+
+  }
 }
 
 // Initial loading screen
