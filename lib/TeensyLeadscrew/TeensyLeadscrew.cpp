@@ -3,6 +3,7 @@
 #include "QuadEncoder.h"
 #include "EncoderTach.h"
 #include "TeensyLeadscrew.h"
+#include "SynchronousBidirectionalClutch.h"
 
 
 TeensyLeadscrew::TeensyLeadscrew(QuadEncoder &arg_spindleEncoder,
@@ -14,24 +15,18 @@ zStepper(arg_zStepper) // Same as above. If you don't have this, it tries to cop
 {
         // Store hardware specs
         sysInfo = arg_sysInfo;
+        // Set default gearbox state
+        gearbox.rapidReturn = false;
+        gearbox.enableMotorBraking = true;
+        gearbox.disable = false;
+        gearbox.rapidStepRate = 500; // TODO: how should we handle this?
+        gearbox.configuredPitch.value = 0.001; // Default to 0.001"/REV feed rate, feeding left
+        gearbox.configuredPitch.units = in_per_rev;
+        gearbox.configuredPitch.direction = rightHandThread_feedLeft;
 }
 
 void TeensyLeadscrew::init() {
     spindleTach = EncoderTach(100, sysInfo.encoderTicksPerRev, sysInfo.encoderPulleyMultiplier);
-}
-
-// Z Feed "Lever" Control (modeled after HLV-H leadscrew clutch lever)
-
-void TeensyLeadscrew::disengageZFeed() {
-    zFeedDirection = 0;
-}
-
-void TeensyLeadscrew::engageZFeedLeft() {
-    zFeedDirection = 1;
-}
-
-void TeensyLeadscrew::engageZFeedRight() {
-    zFeedDirection = -1;
 }
 
 // Handles one "cycle" of actual leadscrew movement
@@ -53,37 +48,18 @@ void TeensyLeadscrew::cycle() {
 
     // BUSINESS
 
-    // Move the clutch input shaft (and normalize the value as an angle in steps)
-    clutchState.inputShaftAngle = fmod( (clutchState.inputShaftAngle + calculateMotorSteps(relativeEncoderMovement)), sysInfo.stepsPerRev); // TODO: clarify this by moving to a function
-
-    // If the clutch is already locked, just go ahead and move the motor
-    if (clutchState.engaged && clutchState.locked) {
-        // Move motor as normal
-        queuedMotorSteps.totalValue += calculateMotorSteps(relativeEncoderMovement);
-    }
-    // If the clutch isn't locked, but is engaged, see if it lines up on this cycle (meaning we start movement on the next one)
-    else if (clutchState.engaged && !clutchState.locked) {
-        // We're waiting for the clutch to align
-        if (clutchState.inputShaftAngle == 0) {
-            // Clutch is aligned
-            clutchState.locked = true;
-        }
-    }
-
-    // Store this clutch state for next cycle
-    lastClutchState = clutchState;
-
-    // stats for debugging
-    encoderTicksRecorded = encoderTicksRecorded + relativeEncoderMovement;
+    // Encoder --> calculateMotorSteps --> clutch.move
+    // Spindle --> gearbox --------------> feed clutch
+    queuedMotorSteps.totalValue += clutch.moveInput( calculateMotorSteps(relativeEncoderMovement) );
 
     zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
-
+    // Actually move the motor
     zStepper.run();
 }
 
 // Given the class's current gearbox config
 // and the number of spindle encoder ticks on this cycle,
-// find the number of motor steps the leadscrew should move, ignoring any clutch action
+// find the number of motor steps the leadscrew should move, ignoring any clutch action or reversing
 float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     /*
     Math Example: Cutting a 13TPI thread on a 20TPI leadscrew
@@ -99,16 +75,17 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
     */
 
     // So first, we'll find the desired cutter movement (in inches)
-    float cutterMovement_inches;
+
+    float cutterMovement_inches; // positive means toward the headstock
     // If we're working in TPI
-    if (gearbox_pitch.units == tpi) {
-        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderPulleyMultiplier) * (1./(float)sysInfo.encoderTicksPerRev) * (1./gearbox_pitch.value);
+    if (gearbox.configuredPitch.units == tpi) {
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderPulleyMultiplier) * (1./(float)sysInfo.encoderTicksPerRev) * (1./gearbox.configuredPitch.value);
     }
-    else if (gearbox_pitch.units == in_per_rev) {
-        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox_pitch.value);
+    else if (gearbox.configuredPitch.units == in_per_rev) {
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox.configuredPitch.value);
     }
-    else if (gearbox_pitch.units == mm) {
-        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox_pitch.value) * (1./25.4);
+    else if (gearbox.configuredPitch.units == mm) {
+        cutterMovement_inches = ((float)encoderTicks) * (1./sysInfo.encoderTicksPerRev) * (1./sysInfo.encoderPulleyMultiplier) * (gearbox.configuredPitch.value) * (1./25.4);
     }
 
     // Now go from cutter movement to leadscrew motor steps
@@ -129,5 +106,5 @@ float TeensyLeadscrew::calculateMotorSteps(int encoderTicks) {
         return 0;
     }
 
-    return stepsToMove; // TODO: Handle direction
+    return stepsToMove;
 }

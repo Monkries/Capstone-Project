@@ -14,7 +14,7 @@
 
 // System Specs for Backend
 LatheHardwareInfo sysSpecs = {
-  -1.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
+  2.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
   8000, // encoderTicksPerRev
   2000, // stepsPerRev : usable steps per rev, including microsteps
   1000000, // maxStepRate : maximum allowable rate for stepper motor (steps per sec)
@@ -87,6 +87,7 @@ void loop()
   // Spindle overspeed LED
   if (spindleRpm > MAX_SPINDLE_RPM) {
     cPanel.writeOverspeedLED(true);
+
   }
   else {
     cPanel.writeOverspeedLED(false);
