@@ -149,7 +149,7 @@
   (net 58 "Net-(SW8-PadS1)")
 
   (footprint "Button_Switch_THT:SW_PUSH_6mm_H9.5mm" locked (layer "F.Cu")
-    (tedit 5A02FE31) (tstamp 023b8036-b37e-4e6b-b316-94c2bd8af4ab)
+    (tedit 6253407F) (tstamp 023b8036-b37e-4e6b-b316-94c2bd8af4ab)
     (at 182.17 95.54)
     (descr "tactile push button, 6x6mm e.g. PHAP33xx series, height=9.5mm")
     (tags "tact sw push 6mm")
@@ -199,7 +199,7 @@
       (net 1 "GND") (pinfunction "2") (pintype "passive") (tstamp 24336cbb-ed5d-44b0-bf02-d11ae0331fac))
     (pad "2" thru_hole circle locked (at 0 4.5 90) (size 2 2) (drill 1.1) (layers *.Cu *.Mask)
       (net 1 "GND") (pinfunction "2") (pintype "passive") (tstamp 34fece71-a06e-47e2-b5dc-947ddf87b09e))
-    (model "${KICAD6_3DMODEL_DIR}/Button_Switch_THT.3dshapes/SW_PUSH_6mm_H9.5mm.wrl"
+    (model "${KICAD6_3DMODEL_DIR}/Button_Switch_THT.3dshapes/SW_PUSH_6mm_H9.5mm.step"
       (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
@@ -628,7 +628,7 @@
       (net 1 "GND") (pinfunction "2") (pintype "passive") (tstamp a659890f-c262-401d-95e1-315d3cf4375a))
     (pad "2" thru_hole circle locked (at 0 4.5 90) (size 2 2) (drill 1.1) (layers *.Cu *.Mask)
       (net 1 "GND") (pinfunction "2") (pintype "passive") (tstamp cb7d7a60-c3f6-41de-9a14-1e4dd5641c3a))
-    (model "${KICAD6_3DMODEL_DIR}/Button_Switch_THT.3dshapes/SW_PUSH_6mm_H9.5mm.wrl"
+    (model "${KICAD6_3DMODEL_DIR}/Button_Switch_THT.3dshapes/SW_PUSH_6mm_H9.5mm.step"
       (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
@@ -636,7 +636,7 @@
   )
 
   (footprint "Button_Switch_THT:SW_PUSH_6mm_H9.5mm" locked (layer "F.Cu")
-    (tedit 5A02FE31) (tstamp a818dbd6-8d05-4bed-8e76-065b136c4a97)
+    (tedit 62534065) (tstamp a818dbd6-8d05-4bed-8e76-065b136c4a97)
     (at 182.17 84.11)
     (descr "tactile push button, 6x6mm e.g. PHAP33xx series, height=9.5mm")
     (tags "tact sw push 6mm")
@@ -686,7 +686,7 @@
       (net 1 "GND") (pinfunction "2") (pintype "passive") (tstamp dfe2f8d9-6fc7-415d-bc35-fe3109d317f2))
     (pad "2" thru_hole circle locked (at 6.5 4.5 90) (size 2 2) (drill 1.1) (layers *.Cu *.Mask)
       (net 1 "GND") (pinfunction "2") (pintype "passive") (tstamp ef9338d2-be92-41eb-995e-a6475d8b74aa))
-    (model "${KICAD6_3DMODEL_DIR}/Button_Switch_THT.3dshapes/SW_PUSH_6mm_H9.5mm.wrl"
+    (model "${KICAD6_3DMODEL_DIR}/Button_Switch_THT.3dshapes/SW_PUSH_6mm_H9.5mm.step"
       (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
@@ -746,7 +746,7 @@
   )
 
   (footprint "Button_Switch_THT:SW_PUSH_6mm_H9.5mm" locked (layer "F.Cu")
-    (tedit 5A02FE31) (tstamp c41543a3-3bad-4682-9e5f-797025664df0)
+    (tedit 625340B0) (tstamp c41543a3-3bad-4682-9e5f-797025664df0)
     (at 135.18 35.85)
     (descr "tactile push button, 6x6mm e.g. PHAP33xx series, height=9.5mm")
     (tags "tact sw push 6mm")
@@ -796,7 +796,7 @@
       (net 1 "GND") (pinfunction "2") (pintype "passive") (tstamp 8ee03db8-8ad7-4bb8-92b9-76bda4b0907f))
     (pad "2" thru_hole circle locked (at 0 4.5 90) (size 2 2) (drill 1.1) (layers *.Cu *.Mask)
       (net 1 "GND") (pinfunction "2") (pintype "passive") (tstamp cbe4a067-825c-4c81-8a5f-290d18576059))
-    (model "${KICAD6_3DMODEL_DIR}/Button_Switch_THT.3dshapes/SW_PUSH_6mm_H9.5mm.wrl"
+    (model "${KICAD6_3DMODEL_DIR}/Button_Switch_THT.3dshapes/SW_PUSH_6mm_H9.5mm.step"
       (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
@@ -804,7 +804,7 @@
   )
 
   (footprint "Button_Switch_THT:SW_PUSH_6mm_H9.5mm" locked (layer "F.Cu")
-    (tedit 5A02FE31) (tstamp d372b0df-12cb-4d18-93e5-ecca155a1076)
+    (tedit 6253409E) (tstamp d372b0df-12cb-4d18-93e5-ecca155a1076)
     (at 168.2 35.85)
     (descr "tactile push button, 6x6mm e.g. PHAP33xx series, height=9.5mm")
     (tags "tact sw push 6mm")
@@ -854,7 +854,7 @@
       (net 1 "GND") (pinfunction "2") (pintype "passive") (tstamp 94c92652-21ac-42f1-b571-6f41123e5974))
     (pad "2" thru_hole circle locked (at 6.5 4.5 90) (size 2 2) (drill 1.1) (layers *.Cu *.Mask)
       (net 1 "GND") (pinfunction "2") (pintype "passive") (tstamp a109695a-7a5a-4ff1-81f1-c62e064d8fdd))
-    (model "${KICAD6_3DMODEL_DIR}/Button_Switch_THT.3dshapes/SW_PUSH_6mm_H9.5mm.wrl"
+    (model "${KICAD6_3DMODEL_DIR}/Button_Switch_THT.3dshapes/SW_PUSH_6mm_H9.5mm.step"
       (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))

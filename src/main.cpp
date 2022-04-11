@@ -1,4 +1,3 @@
-
 #include <Arduino.h>
 #include <Wire.h>
 #include <SPI.h>
@@ -10,15 +9,10 @@
 #include <TeensyLeadscrew.h> // Our main "virtual gearbox" backend lib
 #include <elsControlPanel.h>
 #include "Adafruit_LEDBackpack.h"
+#include "Adafruit_MCP23X17.h"
+#include "Bounce2mcp.h"
 
-
-// Debugging stuff
-/*
-#include <TeensyDebug.h>
-#pragma GCC optimize ("O0")
-*/
-
-// System Specs
+// System Specs for Backend
 LatheHardwareInfo sysSpecs = {
   2.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
   8000, // encoderTicksPerRev
@@ -26,6 +20,11 @@ LatheHardwareInfo sysSpecs = {
   1000000, // maxStepRate : maximum allowable rate for stepper motor (steps per sec)
   {20, tpi, leftHandThread_feedRight}, // leadscrewPitch : a Pitch struct with leadscrew specifications
 };
+
+// Other Config Items
+#define MAX_SPINDLE_RPM 3000
+
+// BEGIN REAL CODE
 
 // Declare spindle encoder
 // Hardware quadrature channel 1, phase A pin 3, phase B pin 2
@@ -37,7 +36,8 @@ AccelStepper zStepper(AccelStepper::DRIVER, 4, 6);
 // Backend Electronic Leadscrew "Gearbox" lib setup
 TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 500);
 
-/* CONTROL PANEL SETUP
+////////////////////////////////////////////////////////////////////////////////////////////////
+//                  CONTROL PANEL SETUP                                                       //
 // TFT Display Pin Info (3/21/2022)
 // SCK -> 13
 // MISO -> 12
@@ -46,22 +46,14 @@ TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 500);
 // SD_CS -> n/c
 // RESET -> 15
 // D/C -> 14
-*/
 Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 
-// Alphanumeric Display (for RPM) Pin Info
-// SDA -> 18
-// SCL -> 19
-// We don't actually have to deal with this here, because the class is forced to use the hardware i2c pins
+// Control Panel Encoder
+// Hardware quadrature channel 2, phase A on pin 0, phase B on pin 1
+QuadEncoder panelEnc(2, 0, 1, 0);
 
 // Create control panel class
-elsControlPanel cPanel(tftObject);
-
-// Temporary Global Variables for Testing
-IntegerStepHelper queuedSteps;
-int absoluteEncoderPosition=0;
-const int feedFwdPin = 13;
-const int feedRevPin = 14;
+elsControlPanel cPanel(tftObject, panelEnc);
 
 void setup()
 {
@@ -69,16 +61,6 @@ void setup()
   spindleEnc.setInitConfig();
   spindleEnc.init();
 
-  // Setup pins for the teensy
-  pinMode(10, OUTPUT);
-  pinMode(11, OUTPUT);
-  pinMode(12, OUTPUT);
-  pinMode(13, OUTPUT);
-  pinMode(14, OUTPUT);
-  pinMode(15, OUTPUT);
-  pinMode(17, OUTPUT);
-  pinMode(16, OUTPUT);
- 
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
   zStepper.setAcceleration(100000.0);
@@ -91,75 +73,24 @@ void setup()
   
   // Start the TFT splash screen
   cPanel.TFT_splashscreen();
-
-  // Test Config for screw, 20tpi, no rapids
-  els.gearbox.enableMotorBraking = true;
-  els.gearbox.configuredPitch = {13, tpi, rightHandThread_feedLeft};
-
-  // TEMPORARY ON LATHE TESTING
-  pinMode(feedFwdPin, INPUT_PULLUP);
-  pinMode(feedRevPin, INPUT_PULLUP);
+  delay(2000);
 }
 
 void loop()
 {
-  BidirectionalClutchStatus clutchStatus = els.clutch.getClutchStatus();
-
-  if (digitalRead(feedFwdPin) == LOW) {
-    // Feed forward
-    els.clutch.engageForward();
-  }
-  else if (digitalRead(feedRevPin) == LOW) {
-    // Feed reverse
-    els.clutch.engageReverse();
-  }
-  else {
-    // Feed neutral
-    els.clutch.disengage();
-  }
-
   els.cycle();
-
-  elapsedMillis motorTime = 0;
-  while (motorTime < 10) {
-    els.zStepper.run();
-  }
-
-
-  /*
-  // WORKING TEST CODE #1
-  absoluteEncoderPosition = els.spindleEncoder.read();
-  queuedSteps.totalValue = els.calculateMotorSteps(absoluteEncoderPosition);
-  els.zStepper.moveTo(queuedSteps.getIntegerPart());
-  els.zStepper.run();
-  */
-
-  /*
-  // WORKING TEST CODE #2
-  // This has the stepper motor in absolute coordinates, but the encoder in relative coordinates
-  int relativeEncoderMovement = els.spindleEncoder.read();
-  if (relativeEncoderMovement!=0) {
-      els.spindleEncoder.write(0); // This IF keeps us from losing "unfinished" steps by zeroing midway through a pulse train
-  }
-  queuedSteps.totalValue += els.calculateMotorSteps(relativeEncoderMovement);
-  els.zStepper.moveTo(queuedSteps.getIntegerPart());
-  els.zStepper.run();
-  */
-
-  /*
-  // WORKING TEST CODE #3
-  // Both encoder and stepper in relative coordinates
-  int relativeEncoderMovement = els.spindleEncoder.read();
-  if (relativeEncoderMovement!=0) {
-      els.spindleEncoder.write(0); // This IF keeps us from losing "unfinished" steps by zeroing midway through a pulse train
-  }
-  queuedSteps.totalValue += els.calculateMotorSteps(relativeEncoderMovement);
-  els.zStepper.move(queuedSteps.popIntegerPart()+els.zStepper.distanceToGo());
-  els.zStepper.run();
-  */
 
   // RPM display
   int spindleRpm = (int)round(els.spindleTach.getRPM());
   cPanel.alphanum_writeRPM(spindleRpm);
-  cPanel.writeOverspeedLED(spindleRpm);
+
+  // Spindle overspeed LED
+  if (spindleRpm > MAX_SPINDLE_RPM) {
+    cPanel.writeOverspeedLED(true);
+
+  }
+  else {
+    cPanel.writeOverspeedLED(false);
+  }
+
 }
