@@ -25,8 +25,9 @@ int units = 1;
 #define BTTN_RAPID 3   // Rapid scroll pin
 #define BTTN_X 4       // Future additions pin
 
-elsControlPanel::elsControlPanel(Adafruit_ILI9341 &tftObject, uint8_t arg_rpmReadouti2cAddress) :
-tft(tftObject)
+elsControlPanel::elsControlPanel(Adafruit_ILI9341 &arg_tftObject, QuadEncoder &arg_encoder, uint8_t arg_rpmReadouti2cAddress) :
+tft(arg_tftObject), // Properly pass in references to TFT object, encoder object
+encoder(arg_encoder)
 {
     rpmReadouti2cAddress = arg_rpmReadouti2cAddress; // Store i2c address for alphanumeric RPM display
 }

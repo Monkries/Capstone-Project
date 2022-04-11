@@ -22,7 +22,7 @@
 
 // System Specs
 LatheHardwareInfo sysSpecs = {
-  1.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
+  -1.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
   8000, // encoderTicksPerRev
   2000, // stepsPerRev : usable steps per rev, including microsteps
   1000000, // maxStepRate : maximum allowable rate for stepper motor (steps per sec)
@@ -52,13 +52,17 @@ TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 500);
 
 Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
 
+// Control Panel Encoder
+// Hardware quadrature channel 2, phase A on pin 0, phase B on pin 1
+QuadEncoder panelEnc(2, 0, 1, 0);
+
 // Alphanumeric Display (for RPM) Pin Info
 // SDA -> 18
 // SCL -> 19
 // We don't actually have to deal with this here, because the class is forced to use the hardware i2c pins
 
 // Create control panel class
-elsControlPanel cPanel(tftObject);
+elsControlPanel cPanel(tftObject, panelEnc);
 
 // // See https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library for table on pin descriptions
 // // #define INTB_PIN 19    // Interrupt pin
@@ -76,10 +80,6 @@ elsControlPanel cPanel(tftObject);
   int spindleRpm = 1;
   int units = 1;
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Setup function
 void setup()
 {
   // Initialize spindle encoder
@@ -88,18 +88,22 @@ void setup()
 
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
-  zStepper.setAcceleration(500000.0);
+  zStepper.setAcceleration(100000.0);
 
   // Initialize control panel hardware
   cPanel.init();
 
   // Initialize electronic leadscrew backend
   els.init();
+  
+  // Start the TFT splash screen
+  cPanel.TFT_splashscreen();
 
   // Test Config for screw, 20tpi, no rapids
   els.gearbox_enableMotorBraking = true;
   els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
   els.engageZFeedLeft();
+  
   cPanel.TFT_splashscreen();
   delay(2000);
 
