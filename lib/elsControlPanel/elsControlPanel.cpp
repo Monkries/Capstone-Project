@@ -8,6 +8,7 @@
 #include "TeensyLeadscrew.h"
 #include "Wire.h"
 #include "Adafruit_MCP23X17.h"
+#include "Bounce2mcp.h"
 
 static unsigned int MAX_RPM = 3000; 
 int modenum = 0;
@@ -35,7 +36,7 @@ encoder(arg_encoder)
 void elsControlPanel::init() {
     alpha4.begin(rpmReadouti2cAddress); 
     tft.begin();
-     mcp.begin_I2C();
+    mcp.begin_I2C();
   
   // MCP pin setup
   // Interrupt A pin setup
@@ -246,8 +247,6 @@ void elsControlPanel::alphanum_writeRPM(unsigned int rpm) {
 
 }
 
-void elsControlPanel::writeOverspeedLED(unsigned int rpm){
-    if (rpm > MAX_RPM) {
-        //LED ON
-    }
+void elsControlPanel::writeOverspeedLED(bool led){
+        //LED On
 }

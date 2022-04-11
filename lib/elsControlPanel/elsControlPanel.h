@@ -75,7 +75,7 @@ class elsControlPanel {
         void alphanum_writeRPM(unsigned int rpm);
         
         // LED for reaching max rpm 
-        void writeOverspeedLED(unsigned int rpm); 
+        void writeOverspeedLED(bool led); 
         
         // TODO: function to return a struct with states of all the buttons since we last checked
         

@@ -72,6 +72,7 @@ elsControlPanel cPanel(tftObject, panelEnc);
 // #define BTTN_UNITS 2   // Units toggle pin
 // #define BTTN_RAPID 3   // Rapid scroll pin
 // #define BTTN_X 4       // Future additions pin
+  static unsigned int MAX_RPM = 3000; 
 
   int modenum = 0;
   int rapidnum = 0;
@@ -217,5 +218,13 @@ void loop()
 
   cPanel.TFT_writeGearboxInfo(Threading, PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button");
   els.cycle();
+
+  // LED 
+  if (spindleRpm > MAX_RPM) {
+    cPanel.writeOverspeedLED(true);
+  }
+  else {
+    cPanel.writeOverspeedLED(false);
+  }
 
 }
