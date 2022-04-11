@@ -1,4 +1,3 @@
-
 #include <Arduino.h>
 #include <Wire.h>
 #include <SPI.h>
@@ -13,14 +12,7 @@
 #include "Adafruit_MCP23X17.h"
 #include "Bounce2mcp.h"
 
-
-// Debugging stuff
-/*
-#include <TeensyDebug.h>
-#pragma GCC optimize ("O0")
-*/
-
-// System Specs
+// System Specs for Backend
 LatheHardwareInfo sysSpecs = {
   -1.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
   8000, // encoderTicksPerRev
@@ -28,6 +20,11 @@ LatheHardwareInfo sysSpecs = {
   1000000, // maxStepRate : maximum allowable rate for stepper motor (steps per sec)
   {20, tpi, leftHandThread_feedRight}, // leadscrewPitch : a Pitch struct with leadscrew specifications
 };
+
+// Other Config Items
+#define MAX_SPINDLE_RPM 3000
+
+// BEGIN REAL CODE
 
 // Declare spindle encoder
 // Hardware quadrature channel 1, phase A pin 3, phase B pin 2
@@ -72,14 +69,6 @@ elsControlPanel cPanel(tftObject, panelEnc);
 // #define BTTN_UNITS 2   // Units toggle pin
 // #define BTTN_RAPID 3   // Rapid scroll pin
 // #define BTTN_X 4       // Future additions pin
-  static unsigned int MAX_RPM = 3000; 
-
-  // int modenum = 0;
-  // int rapidnum = 0;
-  // bool Threading = true;
-  // bool PowerFeed = false;
-  int spindleRpm = 1;
-  // int units = 1;
 
 void setup()
 {
@@ -98,13 +87,6 @@ void setup()
   els.init();
   
   // Start the TFT splash screen
-  cPanel.TFT_splashscreen();
-
-  // Test Config for screw, 20tpi, no rapids
-  els.gearbox_enableMotorBraking = true;
-  els.gearbox_pitch = {10, mm, rightHandThread_feedLeft};
-  els.engageZFeedLeft();
-  
   cPanel.TFT_splashscreen();
   delay(2000);
 
@@ -130,7 +112,6 @@ void setup()
 
   // Interrupt B pin setup
   // pinMode(INTB_PIN, INPUT);
-  Serial.begin(9600);
 }
 
 void loop()
@@ -207,18 +188,16 @@ void loop()
   // delay(500);
   ///////////////////////////////////////////////////////////////////////////////////
 
-  // RPM display
-  // int spindleRpm = (int)round(els.spindleTach.getRPM());
-  spindleRpm++;
 
-  cPanel.alphanum_writeRPM(spindleRpm);
-  cPanel.writeOverspeedLED(spindleRpm);
 
-  cPanel.TFT_writeGearboxInfo(Threading, PowerFeed, els.gearbox_pitch, els.gearbox_rapidLeft, els.gearbox_rapidRight, "3rd button");
   els.cycle();
 
-  // LED 
-  if (spindleRpm > MAX_RPM) {
+  // RPM display
+  int spindleRpm = (int)round(els.spindleTach.getRPM());
+  cPanel.alphanum_writeRPM(spindleRpm);
+
+  // Spindle overspeed LED
+  if (spindleRpm > MAX_SPINDLE_RPM) {
     cPanel.writeOverspeedLED(true);
   }
   else {
