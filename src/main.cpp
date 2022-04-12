@@ -80,17 +80,13 @@ void loop()
 {
   els.cycle();
 
-  // RPM display
-  int spindleRpm = (int)round(els.spindleTach.getRPM());
-  cPanel.alphanum_writeRPM(spindleRpm);
-
-  // Spindle overspeed LED
-  if (spindleRpm > MAX_SPINDLE_RPM) {
-    cPanel.writeOverspeedLED(true);
-
-  }
-  else {
-    cPanel.writeOverspeedLED(false);
-  }
-
+  /*
+  1. Handle button presses (units changes, rapid configuration, or mode changes)
+  2. Handle any encoder movement (meaning pitch adjustments)
+  3. Check motor braking status
+  4. Check feed clutch switch status
+  5. Write spindle RPM to display
+  6. Check for spindle overspeed OR leadscrew overspeed (light LED for either)
+  7. Cycle the backend
+  */
 }
