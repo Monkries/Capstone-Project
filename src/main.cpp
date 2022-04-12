@@ -83,10 +83,11 @@ void loop()
   /*
   1. Handle button presses (units changes, rapid configuration, or mode changes)
   2. Handle any encoder movement (meaning pitch adjustments)
-  3. Check motor braking status
-  4. Check feed clutch switch status
-  5. Write spindle RPM to display
-  6. Check for spindle overspeed OR leadscrew overspeed (light LED for either)
-  7. Cycle the backend
+  3. Update TFT display
+  4. Check motor braking switch status, update backend
+  5. Check feed clutch switch status, update backend
+  6. Get spindle RPM from backend and write to display
+  7. Check for spindle overspeed OR leadscrew overspeed (light LED for either)
+  8. Call els.cycle()
   */
 }
