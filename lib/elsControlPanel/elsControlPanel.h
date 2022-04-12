@@ -42,8 +42,8 @@ enum cPanelFeedSwitchState {
 // Structs for control panel devices
 
 struct cPanelButton {
-    bool pressedNow;
-    unsigned int unhandledFells;
+    BounceMcp debouncedButton;
+    int fells;
     MCP23017_GPIO_Mapping mcpPin;
 };
 
