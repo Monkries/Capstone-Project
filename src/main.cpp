@@ -99,16 +99,16 @@ void loop()
   else {
     cPanel.writeOverspeedLED(false);
   }
-  
+
   els.cycle();
   /*
-  1. Handle button presses (units changes, rapid configuration, or mode changes)
+  1. Handle button presses (units changes, rapid configuration, or mode changes) done
   2. Handle any encoder movement (meaning pitch adjustments)
-  3. Update TFT display
+  3. Update TFT display done
   4. Check motor braking switch status, update backend
   5. Check feed clutch switch status, update backend
-  6. Get spindle RPM from backend and write to display
-  7. Check for spindle overspeed OR leadscrew overspeed (light LED for either)
-  8. Call els.cycle()
+  6. Get spindle RPM from backend and write to display done
+  7. Check for spindle overspeed OR leadscrew overspeed (light LED for either) done minus led function
+  8. Call els.cycle() done
   */
 }
