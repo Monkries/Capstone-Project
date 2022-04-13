@@ -66,7 +66,7 @@ class elsControlPanel {
         // PANEL OUTPUTS
 
         // Main Utility Functions
-        void TFT_writeGearboxInfo(bool Thread, bool Power, Pitch currentPitch, bool rapidLeftEnabled, bool rapidRightEnabled, String button3text);
+        void TFT_writeGearboxInfo(String Mode, String pitch, String button1, String button2, String button3);
         
         // Loading screen upon startup
         void TFT_splashscreen();
@@ -80,7 +80,7 @@ class elsControlPanel {
         // TODO: function to return a struct with states of all the buttons since we last checked
         
         // Function for button handling
-        void MCPButtons();
+        void DebounceUpdate();
 
         // PANEL INPUTS
 
@@ -95,11 +95,11 @@ class elsControlPanel {
         // ^^ neutral is the initial state just for safety reasons
 
         // Buttons
-        cPanelButton modeRightBtn = {false, 0, GPA0};
-        cPanelButton modeLeftBtn = {false, 0, GPA1};
-        cPanelButton function1Btn = {false, 0, GPA2};
-        cPanelButton function2Btn = {false, 0, GPA3};
-        cPanelButton function3Btn = {false, 0, GPA4};
+        cPanelButton modeRightBtn = {BounceMcp(), 0, GPA0};
+        cPanelButton modeLeftBtn = {BounceMcp(), 0, GPA1};
+        cPanelButton function1Btn = {BounceMcp(), 0, GPA2};
+        cPanelButton function2Btn = {BounceMcp(), 0, GPA3};
+        cPanelButton function3Btn = {BounceMcp(), 0, GPA4};
 
         // Under-the-hood hardware objects
         private:
@@ -111,7 +111,6 @@ class elsControlPanel {
         Adafruit_MCP23X17 i2cIO = Adafruit_MCP23X17();
         // ^^^ Since there is nothing to configure for this device,
         // we just create the object inside this class instead of fighting with passing in a reference
-        BounceMcp debounce = BounceMcp();   //Something?
 
         // Main TFT display
         Adafruit_ILI9341 &tft;

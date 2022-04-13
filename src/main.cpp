@@ -78,8 +78,29 @@ void setup()
 
 void loop()
 {
-  els.cycle();
+  cPanel.DebounceUpdate();
+  cPanel.TFT_writeGearboxInfo("Power Feed", "20 MM", "TPI/MM", "Rapid Off", "");
 
+  els.gearbox.configuredPitch = {20, mm, rightHandThread_feedLeft};
+  els.gearbox.enableMotorBraking = true;
+  els.gearbox.rapidReturn = left_towardHeadstock;
+
+  // Feed Switch
+  // if (feed switch left)
+  // els.clutch.engageForward();
+  // if (feed switch right)
+  // els.clutch.engageReverse();
+  // else
+  // els.clutch.disengage();
+  cPanel.alphanum_writeRPM(els.spindleTach.getRPM());
+  if (els.spindleTach.getRPM() > MAX_SPINDLE_RPM) {
+    cPanel.writeOverspeedLED(true);
+  }
+  else {
+    cPanel.writeOverspeedLED(false);
+  }
+  
+  els.cycle();
   /*
   1. Handle button presses (units changes, rapid configuration, or mode changes)
   2. Handle any encoder movement (meaning pitch adjustments)
