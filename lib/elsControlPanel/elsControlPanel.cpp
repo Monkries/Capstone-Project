@@ -37,6 +37,8 @@ void elsControlPanel::init() {
     // Interrupt A pin setup
     pinMode(INTA_PIN, INPUT);
     i2cIO.setupInterrupts(false, false, LOW);
+
+    // Button pin setup
     i2cIO.pinMode((int)modeLeftBtn.mcpPin, INPUT_PULLUP);
     modeRightBtn.debouncedButton.attach(i2cIO, (int)modeLeftBtn.mcpPin, 5);
 
@@ -46,11 +48,24 @@ void elsControlPanel::init() {
     i2cIO.pinMode((int)function1Btn.mcpPin, INPUT_PULLUP);
     modeRightBtn.debouncedButton.attach(i2cIO, (int)function1Btn.mcpPin, 5);
 
-    i2cIO.pinMode((int)function2Btn.mcpPin,INPUT_PULLUP);
+    i2cIO.pinMode((int)function2Btn.mcpPin, INPUT_PULLUP);
     modeRightBtn.debouncedButton.attach(i2cIO, (int)function2Btn.mcpPin, 5);
 
     i2cIO.pinMode((int)function3Btn.mcpPin, INPUT_PULLUP);
     modeRightBtn.debouncedButton.attach(i2cIO, (int)function3Btn.mcpPin, 5);
+
+    // Switch pin setup
+    i2cIO.pinMode((int)feedSwitch.leftPin.mcpPin, INPUT_PULLUP);
+    feedSwitch.leftPin.debouncedInput.attach(i2cIO, (int)feedSwitch.leftPin.mcpPin, 5);
+
+    i2cIO.pinMode((int)feedSwitch.rightPin.mcpPin, INPUT_PULLUP);
+    feedSwitch.rightPin.debouncedInput.attach(i2cIO, (int)feedSwitch.rightPin.mcpPin, 5);
+
+    i2cIO.pinMode((int)brakingSwitch.disablePin.mcpPin, INPUT_PULLUP);
+    brakingSwitch.disablePin.debouncedInput.attach(i2cIO, (int)brakingSwitch.disablePin.mcpPin, 5);
+
+    i2cIO.pinMode((int)brakingSwitch.enablePin.mcpPin, INPUT_PULLUP);
+    brakingSwitch.enablePin.debouncedInput.attach(i2cIO, (int)brakingSwitch.enablePin.mcpPin, 5);
 
     // i2cIO.setupInterruptPin(BTTN_UNITS, LOW);
     // i2cIO.setupInterruptPin(BTTN_MODEDEC, LOW);
@@ -62,12 +77,35 @@ void elsControlPanel::init() {
 
 // Button Updating
 void elsControlPanel::DebounceUpdate() {
+    // Buttons
     modeRightBtn.debouncedButton.update();
     modeLeftBtn.debouncedButton.update();
     function1Btn.debouncedButton.update();
     function2Btn.debouncedButton.update();
     function3Btn.debouncedButton.update();
-    // Switch
+    
+    // Switches
+    feedSwitch.leftPin.debouncedInput.update();
+    feedSwitch.rightPin.debouncedInput.update();
+    brakingSwitch.disablePin.debouncedInput.update();
+    brakingSwitch.enablePin.debouncedInput.update();
+
+    // Feed switch logic
+    if (feedSwitch.leftPin.debouncedInput.read() == LOW) {
+        feedSwitch.currentState = left_towardHeadstock;
+    }
+    else if (feedSwitch.rightPin.debouncedInput.read() == LOW) {
+        feedSwitch.currentState = right_towardTailstock;
+    }
+
+    // Braking switch logic
+    if (brakingSwitch.disablePin.debouncedInput.read() == LOW) {
+        brakingSwitch.enableMotorBraking = false;
+    }
+    else if (brakingSwitch.enablePin.debouncedInput.read() == LOW) {
+        brakingSwitch.enableMotorBraking = true;
+    }
+
 }
 
 // Initial loading screen
