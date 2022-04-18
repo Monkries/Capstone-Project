@@ -108,13 +108,20 @@ void printAllInputs() {
 void loop()
 {
   cPanel.updateInputs();
-  cPanel.TFT_writeGearboxInfo("Power Feed", "20 MM", "TPI/MM", "Rapid Off", "");
-
-  printAllInputs();
+  //cPanel.TFT_writeGearboxInfo("Power Feed", "20 MM", "TPI/MM", "Rapid Off", "");
 
   els.gearbox.configuredPitch = {20, mm, rightHandThread_feedLeft};
   els.gearbox.enableMotorBraking = true;
-  els.gearbox.rapidReturn = left_towardHeadstock;
+
+  if (cPanel.feedSwitch.currentState == neutral) {
+    els.clutch.disengage();
+  }
+  else if (cPanel.feedSwitch.currentState == left_towardHeadstock) {
+    els.clutch.engageForward();
+  }
+  else if (cPanel.feedSwitch.currentState == right_towardTailstock) {
+    els.clutch.engageReverse();
+  }
 
   cPanel.alphanum_writeRPM(els.spindleTach.getRPM());
   if (els.spindleTach.getRPM() > MAX_SPINDLE_RPM) {
@@ -125,6 +132,10 @@ void loop()
   }
 
   els.cycle();
+  for(int i=0;i<2000;i++){
+    els.zStepper.run();
+  }
+
   /*
   1. Handle button presses (units changes, rapid configuration, or mode changes) done
   2. Handle any encoder movement (meaning pitch adjustments)

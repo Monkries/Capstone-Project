@@ -32,7 +32,7 @@ void EncoderTach::recordTicks(int encoderTicks)
         float minutes = ((float)timestamp_micros)/(1e6*60.0);
 
         // Encoder movement in rotations / time elapsed in minutes
-        _lastSampledRPM = (encoderRotations / minutes) * _pulleyMultiplier;
+        _lastSampledRPM = (encoderRotations / minutes) * (1/_pulleyMultiplier);
 
         // Reset the encoder movement we've accumulated
         _ticksSinceLastSample = 0;
