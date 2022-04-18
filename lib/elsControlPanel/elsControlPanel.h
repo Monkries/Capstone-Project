@@ -47,10 +47,21 @@ struct cPanelButton {
     MCP23017_GPIO_Mapping mcpPin;
 };
 
+struct cPanelSwitchPin {
+    MCP23017_GPIO_Mapping mcpPin;
+    BounceMcp debouncedInput;
+};
+
 struct cPanelFeedSwitch {
     cPanelFeedSwitchState currentState;
-    MCP23017_GPIO_Mapping leftPin; // the pin that goes LOW when it's set to feed left
-    MCP23017_GPIO_Mapping rightPin; // the pin that goes LOW when it's set to feed right
+    cPanelSwitchPin leftPin;
+    cPanelSwitchPin rightPin;
+};
+
+struct cPanelBrakingSwitch {
+    bool enableMotorBraking;
+    cPanelSwitchPin enablePin;
+    cPanelSwitchPin disablePin;
 };
 
 // This is meant to work with:
@@ -89,9 +100,17 @@ class elsControlPanel {
 
         // Switches
 
-        bool motorBrakingSwitch; // True to enable motor braking
+        cPanelBrakingSwitch brakingSwitch = {
+            true, // default to braking enabled
+            {GPB2, BounceMcp()},
+            {GPB3, BounceMcp()}
+        };
         
-        cPanelFeedSwitch feedSwitch = {neutral, GPB0, GPB1};
+        cPanelFeedSwitch feedSwitch = {
+            neutral,
+            {GPB0, BounceMcp()},
+            {GPB1, BounceMcp()}
+        };
         // ^^ neutral is the initial state just for safety reasons
 
         // Buttons
