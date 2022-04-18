@@ -76,21 +76,75 @@ void setup()
   delay(2000);
 }
 
+// For debugging
+void printAllInputs() {
+  Serial.println("---------------");
+  Serial.println("--- BUTTONS ---");
+
+  Serial.print("Mode Left: ");
+  Serial.println(cPanel.modeLeftBtn.debouncedButton.read());
+
+  Serial.print("Mode Right: ");
+  Serial.println(cPanel.modeRightBtn.debouncedButton.read());
+
+  Serial.print("F1: ");
+  Serial.println(cPanel.function1Btn.debouncedButton.read());
+
+  Serial.print("F2: ");
+  Serial.println(cPanel.function2Btn.debouncedButton.read());
+
+  Serial.print("F3: ");
+  Serial.println(cPanel.function3Btn.debouncedButton.read());
+
+  Serial.println("--- SWITCHES ---");
+
+  Serial.print("Feed Switch: ");
+  Serial.println(cPanel.feedSwitch.currentState);
+
+  Serial.print("Motor Braking Switch: ");
+  Serial.println(cPanel.brakingSwitch.enableMotorBraking);
+}
+
 void loop()
 {
-  els.cycle();
+  cPanel.updateInputs();
+  //cPanel.TFT_writeGearboxInfo("Power Feed", "20 MM", "TPI/MM", "Rapid Off", "");
 
-  // RPM display
-  int spindleRpm = (int)round(els.spindleTach.getRPM());
-  cPanel.alphanum_writeRPM(spindleRpm);
+  els.gearbox.configuredPitch = {20, mm, rightHandThread_feedLeft};
+  els.gearbox.enableMotorBraking = true;
 
-  // Spindle overspeed LED
-  if (spindleRpm > MAX_SPINDLE_RPM) {
+  if (cPanel.feedSwitch.currentState == neutral) {
+    els.clutch.disengage();
+  }
+  else if (cPanel.feedSwitch.currentState == left_towardHeadstock) {
+    els.clutch.engageForward();
+  }
+  else if (cPanel.feedSwitch.currentState == right_towardTailstock) {
+    els.clutch.engageReverse();
+  }
+
+  cPanel.alphanum_writeRPM(els.spindleTach.getRPM());
+  if (els.spindleTach.getRPM() > MAX_SPINDLE_RPM) {
     cPanel.writeOverspeedLED(true);
-
   }
   else {
     cPanel.writeOverspeedLED(false);
   }
 
+  els.cycle();
+  for(int i=0;i<2000;i++){
+    els.zStepper.run();
+  }
+
+  /*
+  1. Handle button presses (units changes, rapid configuration, or mode changes) done
+  2. Handle any encoder movement (meaning pitch adjustments)
+  3. Update TFT display done
+  4. Check motor braking switch status, update backend
+  5. Check feed clutch switch status, update backend
+  6. Get spindle RPM from backend and write to display done
+  7. Check for spindle overspeed OR leadscrew overspeed (light LED for either) done minus led function
+  8. Call els.cycle() done
+  */
 }
+
