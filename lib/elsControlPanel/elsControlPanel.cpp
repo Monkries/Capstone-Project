@@ -40,27 +40,30 @@ void elsControlPanel::init() {
 
     // Button pin setup
     i2cIO.pinMode((int)modeLeftBtn.mcpPin, INPUT_PULLUP);
-    modeRightBtn.debouncedButton.attach(i2cIO, (int)modeLeftBtn.mcpPin, 5);
+    modeLeftBtn.debouncedButton.attach(i2cIO, (int)modeLeftBtn.mcpPin, 5);
 
     i2cIO.pinMode((int)modeRightBtn.mcpPin, INPUT_PULLUP);
     modeRightBtn.debouncedButton.attach(i2cIO, (int)modeRightBtn.mcpPin, 5);
     
     i2cIO.pinMode((int)function1Btn.mcpPin, INPUT_PULLUP);
-    modeRightBtn.debouncedButton.attach(i2cIO, (int)function1Btn.mcpPin, 5);
+    function1Btn.debouncedButton.attach(i2cIO, (int)function1Btn.mcpPin, 5);
 
     i2cIO.pinMode((int)function2Btn.mcpPin, INPUT_PULLUP);
-    modeRightBtn.debouncedButton.attach(i2cIO, (int)function2Btn.mcpPin, 5);
+    function2Btn.debouncedButton.attach(i2cIO, (int)function2Btn.mcpPin, 5);
 
     i2cIO.pinMode((int)function3Btn.mcpPin, INPUT_PULLUP);
-    modeRightBtn.debouncedButton.attach(i2cIO, (int)function3Btn.mcpPin, 5);
+    function3Btn.debouncedButton.attach(i2cIO, (int)function3Btn.mcpPin, 5);
 
     // Switch pin setup
+
+    // Feed Switch
     i2cIO.pinMode((int)feedSwitch.leftPin.mcpPin, INPUT_PULLUP);
     feedSwitch.leftPin.debouncedInput.attach(i2cIO, (int)feedSwitch.leftPin.mcpPin, 5);
 
     i2cIO.pinMode((int)feedSwitch.rightPin.mcpPin, INPUT_PULLUP);
     feedSwitch.rightPin.debouncedInput.attach(i2cIO, (int)feedSwitch.rightPin.mcpPin, 5);
 
+    // Braking Switch
     i2cIO.pinMode((int)brakingSwitch.disablePin.mcpPin, INPUT_PULLUP);
     brakingSwitch.disablePin.debouncedInput.attach(i2cIO, (int)brakingSwitch.disablePin.mcpPin, 5);
 
@@ -72,11 +75,10 @@ void elsControlPanel::init() {
     // i2cIO.setupInterruptPin(BTTN_MODEINC, LOW);
     // i2cIO.setupInterruptPin(BTTN_RAPID, LOW);
     // i2cIO.setupInterruptPin(BTTN_X, LOW);
-
 }
 
 // Button Updating
-void elsControlPanel::DebounceUpdate() {
+void elsControlPanel::updateInputs() {
     // Buttons
     modeRightBtn.debouncedButton.update();
     modeLeftBtn.debouncedButton.update();
@@ -96,6 +98,9 @@ void elsControlPanel::DebounceUpdate() {
     }
     else if (feedSwitch.rightPin.debouncedInput.read() == LOW) {
         feedSwitch.currentState = right_towardTailstock;
+    }
+    else {
+        feedSwitch.currentState = neutral;
     }
 
     // Braking switch logic

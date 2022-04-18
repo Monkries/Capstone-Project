@@ -91,7 +91,7 @@ class elsControlPanel {
         // TODO: function to return a struct with states of all the buttons since we last checked
         
         // Function for button handling
-        void DebounceUpdate();
+        void updateInputs();
 
         // PANEL INPUTS
 
@@ -102,8 +102,8 @@ class elsControlPanel {
 
         cPanelBrakingSwitch brakingSwitch = {
             true, // default to braking enabled
-            {GPB2, BounceMcp()},
-            {GPB3, BounceMcp()}
+            {GPB3, BounceMcp()},
+            {GPB2, BounceMcp()}
         };
         
         cPanelFeedSwitch feedSwitch = {

@@ -76,22 +76,46 @@ void setup()
   delay(2000);
 }
 
+// For debugging
+void printAllInputs() {
+  Serial.println("---------------");
+  Serial.println("--- BUTTONS ---");
+
+  Serial.print("Mode Left: ");
+  Serial.println(cPanel.modeLeftBtn.debouncedButton.read());
+
+  Serial.print("Mode Right: ");
+  Serial.println(cPanel.modeRightBtn.debouncedButton.read());
+
+  Serial.print("F1: ");
+  Serial.println(cPanel.function1Btn.debouncedButton.read());
+
+  Serial.print("F2: ");
+  Serial.println(cPanel.function2Btn.debouncedButton.read());
+
+  Serial.print("F3: ");
+  Serial.println(cPanel.function3Btn.debouncedButton.read());
+
+  Serial.println("--- SWITCHES ---");
+
+  Serial.print("Feed Switch: ");
+  Serial.println(cPanel.feedSwitch.currentState);
+
+  Serial.print("Motor Braking Switch: ");
+  Serial.println(cPanel.brakingSwitch.enableMotorBraking);
+}
+
 void loop()
 {
-  cPanel.DebounceUpdate();
+  cPanel.updateInputs();
   cPanel.TFT_writeGearboxInfo("Power Feed", "20 MM", "TPI/MM", "Rapid Off", "");
+
+  printAllInputs();
 
   els.gearbox.configuredPitch = {20, mm, rightHandThread_feedLeft};
   els.gearbox.enableMotorBraking = true;
   els.gearbox.rapidReturn = left_towardHeadstock;
 
-  // Feed Switch
-  // if (feed switch left)
-  // els.clutch.engageForward();
-  // if (feed switch right)
-  // els.clutch.engageReverse();
-  // else
-  // els.clutch.disengage();
   cPanel.alphanum_writeRPM(els.spindleTach.getRPM());
   if (els.spindleTach.getRPM() > MAX_SPINDLE_RPM) {
     cPanel.writeOverspeedLED(true);
@@ -112,3 +136,4 @@ void loop()
   8. Call els.cycle() done
   */
 }
+
