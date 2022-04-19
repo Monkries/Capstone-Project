@@ -95,15 +95,7 @@ String generateDisplayablePitch(Pitch input) {
     outputValue = String(input.value, 3);
   }
 
-  String outputDirection;
-  if (input.direction == rightHandThread_feedLeft) {
-    outputDirection = "-RH";
-  }
-  else {
-    outputDirection = "-LH";
-  }
-
-  return outputValue + outputUnits + outputDirection;
+  return outputValue + outputUnits;
 }
 
 void setup()
@@ -150,8 +142,8 @@ void loop()
 
   /* BUTTONS
   F1 = Units Toggle (TPI/mm/inches per rev)
-  F2 = Direction Toggle
-  F3 = Rapid Toggle
+  F2 = Rapid Toggle
+  F3 = Unused
   */
 
   // Handle F1, units button
@@ -175,24 +167,15 @@ void loop()
     }
   }
 
-  // Handle F2, direction toggle
+  // Handle F2, Rapid Toggle
   if (cPanel.function2Btn.debouncedButton.fell()) {
-    // This looks janky but it just toggles the direction
-    if (els.gearbox.configuredPitch.direction == leftHandThread_feedRight) {
-      els.gearbox.configuredPitch.direction = rightHandThread_feedLeft;
-    }
-    else if (els.gearbox.configuredPitch.direction == rightHandThread_feedLeft) {
-      els.gearbox.configuredPitch.direction = leftHandThread_feedRight;
-    }
-  }
-
-  // Handle F3, rapid enable
-  if (cPanel.function3Btn.debouncedButton.fell()) {
     // TODO
   }
 
-  // Handle Encoder movements
+  // ENCODER MOVEMENTS
   int encClicks;
+
+  // This is sort of janky code which doesn't allow more than 1 encoder "tick" per cycle, in order to filter out some noise
   if (cPanel.encoder.read() > 0){
     encClicks = 1;
     cPanel.encoder.write(0);
@@ -230,9 +213,9 @@ void loop()
 
   // Update TFT
 
-  // Get the pitch in nice pretty format (e.g. "20TPI-RH" or "1.75mm-LH")
+  // Get the pitch in nice pretty format ignoring direction (e.g. "20TPI" or "1.75mm")
   String pitch_displayable = generateDisplayablePitch(els.gearbox.configuredPitch);
-  cPanel.TFT_writeGearboxInfo("", pitch_displayable, String(cPanel.encoder.read()), "Toggle Direction", "Rapid OFF");
+  cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI|mm|in/rev", "Rapid Right", "");
 
   if (cPanel.feedSwitch.currentState == neutral) {
     els.clutch.disengage();
@@ -244,8 +227,11 @@ void loop()
     els.clutch.engageReverse();
   }
 
-  cPanel.alphanum_writeRPM(els.spindleTach.getRPM());
-  if (els.spindleTach.getRPM() > MAX_SPINDLE_RPM) {
+  int spindleRPM = els.spindleTach.getRPM();
+  cPanel.alphanum_writeRPM(spindleRPM);
+
+  // Handle overspeed indicator
+  if (spindleRPM > MAX_SPINDLE_RPM) {
     cPanel.writeOverspeedLED(true);
   }
   else {
