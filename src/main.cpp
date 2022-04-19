@@ -164,7 +164,7 @@ void loop()
       els.gearbox.configuredPitch.value = 1.0;
     }
     else if (els.gearbox.configuredPitch.units == mm) {
-      els.gearbox.configuredPitch.units == in_per_rev;
+      els.gearbox.configuredPitch.units = in_per_rev;
       // Default to 0.001 feed pitch
       els.gearbox.configuredPitch.value = 0.001;
     }
@@ -179,10 +179,10 @@ void loop()
   if (cPanel.function2Btn.debouncedButton.fell()) {
     // This looks janky but it just toggles the direction
     if (els.gearbox.configuredPitch.direction == leftHandThread_feedRight) {
-      els.gearbox.configuredPitch.direction == rightHandThread_feedLeft;
+      els.gearbox.configuredPitch.direction = rightHandThread_feedLeft;
     }
     else if (els.gearbox.configuredPitch.direction == rightHandThread_feedLeft) {
-      els.gearbox.configuredPitch.direction == leftHandThread_feedRight;
+      els.gearbox.configuredPitch.direction = leftHandThread_feedRight;
     }
   }
 
@@ -192,10 +192,19 @@ void loop()
   }
 
   // Handle Encoder movements
-  float encClicks = cPanel.encoder.read()/4.0;
-  if (abs(encClicks) >= 1) {
+  int encClicks;
+  if (cPanel.encoder.read() > 0){
+    encClicks = 1;
     cPanel.encoder.write(0);
   }
+  else if (cPanel.encoder.read() < 0){
+    encClicks = -1;
+    cPanel.encoder.write(0);
+  }
+  else {
+    encClicks = 0;
+  }
+
   if (encClicks != 0) {
     // The increment amount of the encoder changes depending on the unit
     float increment;
