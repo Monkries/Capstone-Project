@@ -33,6 +33,7 @@ void TeensyLeadscrew::init() {
 // Reads the encoder object stored in the class, and moves the stepper motor accordingly
 // Call as often as possible
 void TeensyLeadscrew::cycle() {
+    noInterrupts();
     // Read encoder movement since last cycle
     int relativeEncoderMovement = spindleEncoder.read();
     // Then re-zero encoder
@@ -45,6 +46,7 @@ void TeensyLeadscrew::cycle() {
     }
     // Cycle RPM calculator
     spindleTach.recordTicks(relativeEncoderMovement);
+    interrupts();
 
     // BUSINESS
 

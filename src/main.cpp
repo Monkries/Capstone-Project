@@ -23,6 +23,7 @@ LatheHardwareInfo sysSpecs = {
 
 // Other Config Items
 #define MAX_SPINDLE_RPM 3000
+#define STEP_INTERRUPT_INTERVAL_MICROS 3 // How often (in microseconds) to call AccelStepper.run()
 
 // BEGIN REAL CODE
 
@@ -55,6 +56,7 @@ QuadEncoder panelEnc(2, 0, 1, 0);
 // Create control panel class
 elsControlPanel cPanel(tftObject, panelEnc);
 
+// Mechanism for ensuring the stepper's run() function gets called often enough
 IntervalTimer stepTimer;
 
 bool stepInterruptRoutine() {
@@ -82,7 +84,7 @@ void setup()
   cPanel.TFT_splashscreen();
   delay(2000);
 
-  stepTimer.begin(stepInterruptRoutine, 10);
+  stepTimer.begin(stepInterruptRoutine, STEP_INTERRUPT_INTERVAL_MICROS);
 
   els.gearbox.configuredPitch = {20, tpi, rightHandThread_feedLeft};
   els.gearbox.rapidReturn = false;
@@ -121,7 +123,7 @@ void printAllInputs() {
 void loop()
 {
   cPanel.updateInputs();
-  //cPanel.TFT_writeGearboxInfo("Power Feed", "20 MM", "TPI/MM", "Rapid Off", "");
+  cPanel.TFT_writeGearboxInfo("Power Feed", "20 TPI", "TPI/MM", "Rapid Off", "");
 
   if (cPanel.feedSwitch.currentState == neutral) {
     els.clutch.disengage();
@@ -141,9 +143,7 @@ void loop()
     cPanel.writeOverspeedLED(false);
   }
 
-  noInterrupts();
   els.cycle();
-  interrupts();
 
   /*
   1. Handle button presses (units changes, rapid configuration, or mode changes) done
