@@ -23,7 +23,7 @@ LatheHardwareInfo sysSpecs = {
 
 // Other Config Items
 #define MAX_SPINDLE_RPM 3000
-#define STEP_INTERRUPT_INTERVAL_MICROS 3 // How often (in microseconds) to call AccelStepper.run()
+#define STEP_INTERRUPT_INTERVAL_MICROS 5 // How often (in microseconds) to call AccelStepper.run()
 
 // BEGIN REAL CODE
 
@@ -62,6 +62,48 @@ IntervalTimer stepTimer;
 bool stepInterruptRoutine() {
   els.zStepper.run();
   return true;
+};
+
+// UI Business Logic Variables + Helpers
+
+// We'll have an array of these structs to describe each mode, and the last gearbox setting used in that mode
+typedef struct {
+  String name;
+  ELSGearboxConfig rememberedSetting;
+} UIMode;
+
+UIMode modes[2] = {
+  {"Threading", {20, tpi, rightHandThread_feedLeft}},
+  {"Power Feed", {0.005, in_per_rev, rightHandThread_feedLeft}}
+};
+unsigned int selectedMode = 0;
+
+String generateDisplayablePitch(Pitch input) {
+  String outputValue;
+
+  String outputUnits;
+  if (input.units == tpi){
+    outputUnits = "TPI";
+    outputValue = String(input.value, 0);
+  }
+  else if (input.units == mm){
+    outputUnits = "mm";
+    outputValue = String(input.value, 2);
+  }
+  else if (input.units == in_per_rev){
+    outputUnits = "\"/REV";
+    outputValue = String(input.value, 3);
+  }
+
+  String outputDirection;
+  if (input.direction == rightHandThread_feedLeft) {
+    outputDirection = "-RH";
+  }
+  else {
+    outputDirection = "-LH";
+  }
+
+  return outputValue + outputUnits + outputDirection;
 }
 
 void setup()
@@ -91,39 +133,97 @@ void setup()
   els.gearbox.enableMotorBraking = true;
 }
 
-// For debugging
-void printAllInputs() {
-  Serial.println("---------------");
-  Serial.println("--- BUTTONS ---");
-
-  Serial.print("Mode Left: ");
-  Serial.println(cPanel.modeLeftBtn.debouncedButton.read());
-
-  Serial.print("Mode Right: ");
-  Serial.println(cPanel.modeRightBtn.debouncedButton.read());
-
-  Serial.print("F1: ");
-  Serial.println(cPanel.function1Btn.debouncedButton.read());
-
-  Serial.print("F2: ");
-  Serial.println(cPanel.function2Btn.debouncedButton.read());
-
-  Serial.print("F3: ");
-  Serial.println(cPanel.function3Btn.debouncedButton.read());
-
-  Serial.println("--- SWITCHES ---");
-
-  Serial.print("Feed Switch: ");
-  Serial.println(cPanel.feedSwitch.currentState);
-
-  Serial.print("Motor Braking Switch: ");
-  Serial.println(cPanel.brakingSwitch.enableMotorBraking);
-}
-
 void loop()
 {
+  
+  /*
+  1. Handle button presses (units changes, rapid configuration change, or direction change) done
+  2. Handle any encoder movement (meaning pitch adjustments)
+  3. Update TFT display done
+  4. Check motor braking switch status, update backend
+  5. Check feed clutch switch status, update backend
+  6. Get spindle RPM from backend and write to display done
+  7. Check for spindle overspeed OR leadscrew overspeed (light LED for either) done minus led function
+  8. Call els.cycle() done
+  */
   cPanel.updateInputs();
-  cPanel.TFT_writeGearboxInfo("Power Feed", "20 TPI", "TPI/MM", "Rapid Off", "");
+
+  /* BUTTONS
+  F1 = Units Toggle (TPI/mm/inches per rev)
+  F2 = Direction Toggle
+  F3 = Rapid Toggle
+  */
+
+  // Handle F1, units button
+  if (cPanel.function1Btn.debouncedButton.fell()){
+    // Toggle units
+    // The order we use is TPI/mm/in_per_rev
+    if (els.gearbox.configuredPitch.units == tpi){
+      els.gearbox.configuredPitch.units = mm;
+      // Default to 1.0mm pitch
+      els.gearbox.configuredPitch.value = 1.0;
+    }
+    else if (els.gearbox.configuredPitch.units == mm) {
+      els.gearbox.configuredPitch.units == in_per_rev;
+      // Default to 0.001 feed pitch
+      els.gearbox.configuredPitch.value = 0.001;
+    }
+    else if (els.gearbox.configuredPitch.units == in_per_rev){
+      els.gearbox.configuredPitch.units = tpi;
+      // Default to 20tpi pitch;
+      els.gearbox.configuredPitch.value = 20;
+    }
+  }
+
+  // Handle F2, direction toggle
+  if (cPanel.function2Btn.debouncedButton.fell()) {
+    // This looks janky but it just toggles the direction
+    if (els.gearbox.configuredPitch.direction == leftHandThread_feedRight) {
+      els.gearbox.configuredPitch.direction == rightHandThread_feedLeft;
+    }
+    else if (els.gearbox.configuredPitch.direction == rightHandThread_feedLeft) {
+      els.gearbox.configuredPitch.direction == leftHandThread_feedRight;
+    }
+  }
+
+  // Handle F3, rapid enable
+  if (cPanel.function3Btn.debouncedButton.fell()) {
+    // TODO
+  }
+
+  // Handle Encoder movements
+  float encClicks = cPanel.encoder.read()/4.0;
+  if (abs(encClicks) >= 1) {
+    cPanel.encoder.write(0);
+  }
+  if (encClicks != 0) {
+    // The increment amount of the encoder changes depending on the unit
+    float increment;
+    if (els.gearbox.configuredPitch.units == tpi) {
+      increment = 1.0;
+    }
+    else if (els.gearbox.configuredPitch.units == mm) {
+      increment = 0.05;
+    }
+    else if (els.gearbox.configuredPitch.units == in_per_rev) {
+      increment = 0.001;
+    }
+
+    // Increment the configured pitch according to the encoder movement
+    float change = increment * (float)encClicks;
+    if ((els.gearbox.configuredPitch.value + change) < 0) {
+      els.gearbox.configuredPitch.value = 0; // Prevent negative pitches
+    }
+    else {
+      els.gearbox.configuredPitch.value = els.gearbox.configuredPitch.value + change;
+    }
+  }
+
+  // Update TFT
+
+  // Get the pitch in nice pretty format (e.g. "20TPI-RH" or "1.75mm-LH")
+  String pitch_displayable = generateDisplayablePitch(els.gearbox.configuredPitch);
+  cPanel.TFT_writeGearboxInfo("", pitch_displayable, String(cPanel.encoder.read()), "Toggle Direction", "Rapid OFF");
 
   if (cPanel.feedSwitch.currentState == neutral) {
     els.clutch.disengage();
@@ -144,16 +244,5 @@ void loop()
   }
 
   els.cycle();
-
-  /*
-  1. Handle button presses (units changes, rapid configuration, or mode changes) done
-  2. Handle any encoder movement (meaning pitch adjustments)
-  3. Update TFT display done
-  4. Check motor braking switch status, update backend
-  5. Check feed clutch switch status, update backend
-  6. Get spindle RPM from backend and write to display done
-  7. Check for spindle overspeed OR leadscrew overspeed (light LED for either) done minus led function
-  8. Call els.cycle() done
-  */
 }
 

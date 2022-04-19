@@ -32,6 +32,8 @@ void elsControlPanel::init() {
     alpha4.begin(rpmReadouti2cAddress); 
     tft.begin();
     i2cIO.begin_I2C();
+    encoder.init();
+    encoder.setInitConfig();
   
     // MCP pin setup
     // Interrupt A pin setup
