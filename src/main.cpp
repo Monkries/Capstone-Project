@@ -34,7 +34,7 @@ QuadEncoder spindleEnc(1, 3, 2, 0);
 AccelStepper zStepper(AccelStepper::DRIVER, 4, 6);
 
 // Backend Electronic Leadscrew "Gearbox" lib setup
-TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 500);
+TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 100000);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //                  CONTROL PANEL SETUP                                                       //
@@ -55,6 +55,13 @@ QuadEncoder panelEnc(2, 0, 1, 0);
 // Create control panel class
 elsControlPanel cPanel(tftObject, panelEnc);
 
+IntervalTimer stepTimer;
+
+bool stepInterruptRoutine() {
+  els.zStepper.run();
+  return true;
+}
+
 void setup()
 {
   // Initialize spindle encoder
@@ -74,6 +81,12 @@ void setup()
   // Start the TFT splash screen
   cPanel.TFT_splashscreen();
   delay(2000);
+
+  stepTimer.begin(stepInterruptRoutine, 10);
+
+  els.gearbox.configuredPitch = {20, tpi, rightHandThread_feedLeft};
+  els.gearbox.rapidReturn = false;
+  els.gearbox.enableMotorBraking = true;
 }
 
 // For debugging
@@ -110,9 +123,6 @@ void loop()
   cPanel.updateInputs();
   //cPanel.TFT_writeGearboxInfo("Power Feed", "20 MM", "TPI/MM", "Rapid Off", "");
 
-  els.gearbox.configuredPitch = {20, mm, rightHandThread_feedLeft};
-  els.gearbox.enableMotorBraking = true;
-
   if (cPanel.feedSwitch.currentState == neutral) {
     els.clutch.disengage();
   }
@@ -131,10 +141,9 @@ void loop()
     cPanel.writeOverspeedLED(false);
   }
 
+  noInterrupts();
   els.cycle();
-  for(int i=0;i<2000;i++){
-    els.zStepper.run();
-  }
+  interrupts();
 
   /*
   1. Handle button presses (units changes, rapid configuration, or mode changes) done
