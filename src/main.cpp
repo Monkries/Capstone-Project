@@ -25,6 +25,7 @@ LatheHardwareInfo sysSpecs = {
 #define MAX_SPINDLE_RPM 3000
 #define STEP_INTERRUPT_INTERVAL_MICROS 5 // How often (in microseconds) to call AccelStepper.run()
 #define FEEDSWITCH_INT_TEENSYPIN 17
+#define STEPPER_DRIVE_ENABLE_PIN 5
 
 // BEGIN REAL CODE
 
@@ -64,6 +65,18 @@ void stepInterruptRoutine() {
   els.cycle();
 };
 
+void updateFeedSwitch() {
+  if (cPanel.feedSwitch.currentState == neutral) {
+    els.clutch.disengage();
+  }
+  else if (cPanel.feedSwitch.currentState == left_towardHeadstock) {
+    els.clutch.engageForward();
+  }
+  else if (cPanel.feedSwitch.currentState == right_towardTailstock) {
+    els.clutch.engageReverse();
+  }
+}
+
 String generateDisplayablePitch(Pitch input) {
   String outputValue;
 
@@ -93,6 +106,7 @@ void setup()
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
   zStepper.setAcceleration(100000.0);
+  zStepper.setEnablePin(STEPPER_DRIVE_ENABLE_PIN);
 
   // Initialize control panel hardware
   cPanel.init();
@@ -122,6 +136,9 @@ void loop()
   8. Call els.cycle() done
   */
   cPanel.updateInputs();
+
+  // Update motor braking setting (the cPanel.brakingSwitch.enableMotorBraking bool is updated by updateInputs() )
+  els.gearbox.enableMotorBraking = cPanel.brakingSwitch.enableMotorBraking;
 
   /* BUTTONS
   F1 = Units Toggle (TPI/mm/inches per rev)
@@ -154,6 +171,9 @@ void loop()
   if (cPanel.function2Btn.debouncedButton.fell()) {
     // TODO
   }
+
+  // Poll feed switch again
+  updateFeedSwitch();
 
   // ENCODER MOVEMENTS
   int encClicks;
@@ -194,16 +214,10 @@ void loop()
     }
   }
 
-  if (cPanel.feedSwitch.currentState == neutral) {
-    els.clutch.disengage();
-  }
-  else if (cPanel.feedSwitch.currentState == left_towardHeadstock) {
-    els.clutch.engageForward();
-  }
-  else if (cPanel.feedSwitch.currentState == right_towardTailstock) {
-    els.clutch.engageReverse();
-  }
-
+  // Poll feed switch again
+  updateFeedSwitch();
+  
+  // Spindle RPM Display
   int spindleRPM = els.spindleTach.getRPM();
   cPanel.alphanum_writeRPM(spindleRPM);
 
@@ -219,6 +233,9 @@ void loop()
 
   // Get the pitch in nice pretty format ignoring direction (e.g. "20TPI" or "1.75mm")
   String pitch_displayable = generateDisplayablePitch(els.gearbox.configuredPitch);
-  cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI|mm|in/rev", "Rapid Right", String(microSecSinceLastCycle)+"us, "+String(cPanel.feedSwitch.currentState));
+  cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI|mm|in/rev", "Rapid Right", String(microSecSinceLastCycle)+"us, "+String(cPanel.feedSwitch.currentState)+"Br " + String(cPanel.brakingSwitch.enableMotorBraking));
+
+  // Poll feed switch again
+  updateFeedSwitch();
 }
 
