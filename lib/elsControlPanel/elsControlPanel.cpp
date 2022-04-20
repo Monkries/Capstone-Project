@@ -74,6 +74,9 @@ void elsControlPanel::init() {
     i2cIO.pinMode((int)brakingSwitch.enablePin.mcpPin, INPUT_PULLUP);
     brakingSwitch.enablePin.debouncedInput.attach(i2cIO, (int)brakingSwitch.enablePin.mcpPin, 5);
 
+    // Overspeed LED
+    i2cIO.pinMode(MCP23017_GPIO_Mapping::GPB4, OUTPUT);
+
     // i2cIO.setupInterruptPin(BTTN_UNITS, LOW);
     // i2cIO.setupInterruptPin(BTTN_MODEDEC, LOW);
     // i2cIO.setupInterruptPin(BTTN_MODEINC, LOW);
@@ -171,5 +174,10 @@ void elsControlPanel::alphanum_writeRPM(unsigned int rpm) {
 }
 
 void elsControlPanel::writeOverspeedLED(bool led){
-        //LED On
+    if (led == true) {
+        i2cIO.digitalWrite(GPB4, HIGH);
+    }
+    else {
+        i2cIO.digitalWrite(GPB4, LOW);
+    }
 }

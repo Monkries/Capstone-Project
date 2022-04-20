@@ -208,7 +208,7 @@ void loop()
   cPanel.alphanum_writeRPM(spindleRPM);
 
   // Handle overspeed indicator
-  if (spindleRPM > MAX_SPINDLE_RPM) {
+  if (spindleRPM > MAX_SPINDLE_RPM || els.zStepper.speed() > (sysSpecs.maxStepRate-100)) {
     cPanel.writeOverspeedLED(true);
   }
   else {
