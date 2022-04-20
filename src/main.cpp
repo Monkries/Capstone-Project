@@ -24,6 +24,7 @@ LatheHardwareInfo sysSpecs = {
 // Other Config Items
 #define MAX_SPINDLE_RPM 3000
 #define STEP_INTERRUPT_INTERVAL_MICROS 5 // How often (in microseconds) to call AccelStepper.run()
+#define FEEDSWITCH_INT_TEENSYPIN 17
 
 // BEGIN REAL CODE
 
@@ -59,24 +60,9 @@ elsControlPanel cPanel(tftObject, panelEnc);
 // Mechanism for ensuring the stepper's run() function gets called often enough
 IntervalTimer stepTimer;
 
-bool stepInterruptRoutine() {
-  els.zStepper.run();
-  return true;
+void stepInterruptRoutine() {
+  els.cycle();
 };
-
-// UI Business Logic Variables + Helpers
-
-// We'll have an array of these structs to describe each mode, and the last gearbox setting used in that mode
-typedef struct {
-  String name;
-  ELSGearboxConfig rememberedSetting;
-} UIMode;
-
-UIMode modes[2] = {
-  {"Threading", {20, tpi, rightHandThread_feedLeft}},
-  {"Power Feed", {0.005, in_per_rev, rightHandThread_feedLeft}}
-};
-unsigned int selectedMode = 0;
 
 String generateDisplayablePitch(Pitch input) {
   String outputValue;
@@ -119,14 +105,11 @@ void setup()
   delay(2000);
 
   stepTimer.begin(stepInterruptRoutine, STEP_INTERRUPT_INTERVAL_MICROS);
-
-  els.gearbox.configuredPitch = {20, tpi, rightHandThread_feedLeft};
-  els.gearbox.rapidReturn = false;
-  els.gearbox.enableMotorBraking = true;
 }
 
 void loop()
 {
+  elapsedMicros microSecSinceLastCycle = 0;
   
   /*
   1. Handle button presses (units changes, rapid configuration change, or direction change) done
@@ -145,7 +128,7 @@ void loop()
   F2 = Rapid Toggle
   F3 = Unused
   */
-
+  
   // Handle F1, units button
   if (cPanel.function1Btn.debouncedButton.fell()){
     // Toggle units
@@ -211,12 +194,6 @@ void loop()
     }
   }
 
-  // Update TFT
-
-  // Get the pitch in nice pretty format ignoring direction (e.g. "20TPI" or "1.75mm")
-  String pitch_displayable = generateDisplayablePitch(els.gearbox.configuredPitch);
-  cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI|mm|in/rev", "Rapid Right", "");
-
   if (cPanel.feedSwitch.currentState == neutral) {
     els.clutch.disengage();
   }
@@ -238,6 +215,10 @@ void loop()
     cPanel.writeOverspeedLED(false);
   }
 
-  els.cycle();
+  // Update TFT
+
+  // Get the pitch in nice pretty format ignoring direction (e.g. "20TPI" or "1.75mm")
+  String pitch_displayable = generateDisplayablePitch(els.gearbox.configuredPitch);
+  cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI|mm|in/rev", "Rapid Right", String(microSecSinceLastCycle)+"us, "+String(cPanel.feedSwitch.currentState));
 }
 

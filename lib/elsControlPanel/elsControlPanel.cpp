@@ -38,7 +38,7 @@ void elsControlPanel::init() {
     // MCP pin setup
     // Interrupt A pin setup
     pinMode(INTA_PIN, INPUT);
-    i2cIO.setupInterrupts(false, false, LOW);
+    i2cIO.setupInterrupts(true, false, LOW);
 
     // Button pin setup
     i2cIO.pinMode((int)modeLeftBtn.mcpPin, INPUT_PULLUP);
@@ -61,9 +61,11 @@ void elsControlPanel::init() {
     // Feed Switch
     i2cIO.pinMode((int)feedSwitch.leftPin.mcpPin, INPUT_PULLUP);
     feedSwitch.leftPin.debouncedInput.attach(i2cIO, (int)feedSwitch.leftPin.mcpPin, 5);
+    i2cIO.setupInterruptPin((int)feedSwitch.leftPin.mcpPin, LOW);
 
     i2cIO.pinMode((int)feedSwitch.rightPin.mcpPin, INPUT_PULLUP);
     feedSwitch.rightPin.debouncedInput.attach(i2cIO, (int)feedSwitch.rightPin.mcpPin, 5);
+    i2cIO.setupInterruptPin((int)feedSwitch.rightPin.mcpPin, LOW);
 
     // Braking Switch
     i2cIO.pinMode((int)brakingSwitch.disablePin.mcpPin, INPUT_PULLUP);

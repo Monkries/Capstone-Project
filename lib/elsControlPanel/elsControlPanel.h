@@ -121,7 +121,7 @@ class elsControlPanel {
         cPanelButton function3Btn = {BounceMcp(), 0, GPA4};
 
         // Under-the-hood hardware objects
-        private:
+        //private:
         Adafruit_AlphaNum4 alpha4 = Adafruit_AlphaNum4(); // RPM Display
 
         uint8_t rpmReadouti2cAddress; // Default of 0x70 stated by Adafruit
