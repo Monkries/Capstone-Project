@@ -32,11 +32,13 @@ void elsControlPanel::init() {
     alpha4.begin(rpmReadouti2cAddress); 
     tft.begin();
     i2cIO.begin_I2C();
+    encoder.init();
+    encoder.setInitConfig();
   
     // MCP pin setup
     // Interrupt A pin setup
     pinMode(INTA_PIN, INPUT);
-    i2cIO.setupInterrupts(false, false, LOW);
+    i2cIO.setupInterrupts(true, false, LOW);
 
     // Button pin setup
     i2cIO.pinMode((int)modeLeftBtn.mcpPin, INPUT_PULLUP);
@@ -59,9 +61,11 @@ void elsControlPanel::init() {
     // Feed Switch
     i2cIO.pinMode((int)feedSwitch.leftPin.mcpPin, INPUT_PULLUP);
     feedSwitch.leftPin.debouncedInput.attach(i2cIO, (int)feedSwitch.leftPin.mcpPin, 5);
+    i2cIO.setupInterruptPin((int)feedSwitch.leftPin.mcpPin, LOW);
 
     i2cIO.pinMode((int)feedSwitch.rightPin.mcpPin, INPUT_PULLUP);
     feedSwitch.rightPin.debouncedInput.attach(i2cIO, (int)feedSwitch.rightPin.mcpPin, 5);
+    i2cIO.setupInterruptPin((int)feedSwitch.rightPin.mcpPin, LOW);
 
     // Braking Switch
     i2cIO.pinMode((int)brakingSwitch.disablePin.mcpPin, INPUT_PULLUP);
@@ -69,6 +73,9 @@ void elsControlPanel::init() {
 
     i2cIO.pinMode((int)brakingSwitch.enablePin.mcpPin, INPUT_PULLUP);
     brakingSwitch.enablePin.debouncedInput.attach(i2cIO, (int)brakingSwitch.enablePin.mcpPin, 5);
+
+    // Overspeed LED
+    i2cIO.pinMode(MCP23017_GPIO_Mapping::GPB4, OUTPUT);
 
     // i2cIO.setupInterruptPin(BTTN_UNITS, LOW);
     // i2cIO.setupInterruptPin(BTTN_MODEDEC, LOW);
@@ -141,9 +148,9 @@ void elsControlPanel::TFT_writeGearboxInfo(String Mode, String pitch, String but
     
     tft.setCursor(10, 5);
     tft.println(Mode);
-    tft.setCursor(10, 60);
-    tft.setTextSize(5);
-    tft.println(pitch);
+    tft.setCursor(2, 60);
+    tft.setTextSize(4);
+    tft.println(pitch +"       ");
     tft.setCursor(10, 145);
     tft.setTextSize(3);
     tft.println(button1);
@@ -167,5 +174,10 @@ void elsControlPanel::alphanum_writeRPM(unsigned int rpm) {
 }
 
 void elsControlPanel::writeOverspeedLED(bool led){
-        //LED On
+    if (led == true) {
+        i2cIO.digitalWrite(GPB4, HIGH);
+    }
+    else {
+        i2cIO.digitalWrite(GPB4, LOW);
+    }
 }

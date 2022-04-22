@@ -21,13 +21,13 @@ int SynchronousBidirectionalClutch::moveInput(float inputSteps) {
 
         // Determine if it's locked or not
         if (_clutchState.forwardLocked) {
-            Serial.print("Forward clutch locked, ");
+            //Serial.print("Forward clutch locked, ");
             // The clutch is already locked, so simply move the output shaft forward
             _stepQueue.totalValue += inputSteps;
         }
         else {
             // The clutch is engaged, but not locked yet (we are in the "waiting for sync" mode)
-            Serial.print("Forward clutch checking for lock, ");
+            //Serial.print("Forward clutch checking for lock, ");
             // See if we are hitting the lock point
             if (constrainShaftAngle(_clutchState.forwardInputShaftAngle - _clutchState.outputShaftAngle) < lockTolerance) {
                 // Now we know we are within the acceptable range for locking the clutch
@@ -41,7 +41,7 @@ int SynchronousBidirectionalClutch::moveInput(float inputSteps) {
                 */
 
                 _clutchState.forwardLocked = true;
-                Serial.print("locked!");
+                //Serial.print("locked!");
             }
         }
     }
@@ -50,13 +50,13 @@ int SynchronousBidirectionalClutch::moveInput(float inputSteps) {
 
         // Determine if it's locked or not
         if (_clutchState.reverseLocked) {
-            Serial.print("Reverse clutch locked, ");
+            //Serial.print("Reverse clutch locked, ");
             // The clutch is already locked, so simply move the output shaft backward
             _stepQueue.totalValue -= inputSteps;
         }
         else {
             // The clutch is engaged, but not locked yet (we are in the "waiting for sync" mode)
-            Serial.print("Reverse clutch checking for lock, ");
+            //Serial.print("Reverse clutch checking for lock, ");
             // See if we are hitting the lock point
             if (constrainShaftAngle(_clutchState.reverseInputShaftAngle - _clutchState.outputShaftAngle) < lockTolerance) {
                 // Now we know we are within the acceptable range for locking the clutch
@@ -70,7 +70,7 @@ int SynchronousBidirectionalClutch::moveInput(float inputSteps) {
                 */
                 
                 _clutchState.reverseLocked = true;
-                Serial.print("locked!");
+                //Serial.print("locked!");
             }
         }
     }
@@ -82,12 +82,14 @@ int SynchronousBidirectionalClutch::moveInput(float inputSteps) {
     _clutchState.outputShaftAngle = constrainShaftAngle(_clutchState.outputShaftAngle+(float)outputShaftMovement);
 
     // Print a shit ton of clutch stats
+    /*
     Serial.print("fIn=");
     Serial.print(_clutchState.forwardInputShaftAngle);
     Serial.print(", rIn=");
     Serial.print(_clutchState.reverseInputShaftAngle);
     Serial.print(", Out=");
     Serial.println(_clutchState.outputShaftAngle);
+    */
 
     return outputShaftMovement;
 }

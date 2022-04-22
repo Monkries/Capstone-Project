@@ -53,8 +53,19 @@ void TeensyLeadscrew::cycle() {
     queuedMotorSteps.totalValue += clutch.moveInput( calculateMotorSteps(relativeEncoderMovement) );
 
     zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
+
     // Actually move the motor
-    zStepper.run();
+
+    // If the motor doesn't have any steps to go, AND motor braking at idle has been disabled, then disable the drive
+    if (zStepper.distanceToGo() == 0 && gearbox.enableMotorBraking == false) {
+        zStepper.disableOutputs();
+    }
+    else {
+        // Otherwise, call zStepper.run()
+        // (even if there are no steps needed, it will just quit and do nothing)
+        zStepper.enableOutputs();
+        zStepper.run();
+    }
 }
 
 // Given the class's current gearbox config

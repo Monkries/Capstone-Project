@@ -1,3 +1,0 @@
-debug KEYWORD1
-gdb KEYWORD2
-Teensy KEYWORD3

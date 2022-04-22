@@ -75,7 +75,7 @@ class TeensyLeadscrew {
     // @brief Initialize spindleTach, and any other misc stuff that must wait until other hardware is fired up
     void init();
 
-    // @brief Main leadscrew business logic. Reads the encoder, updates the tachometer, calculates any leadscrew movement, then actually moves the motor.
+    // @brief Main leadscrew business logic. Reads the encoder, updates the tachometer, calculates any leadscrew movement, then actually moves the motor. Also updates motor braking pin.
     void cycle();
 
     // Spindle Tachometer Helper (use spindleTach.getRPM() to get the speed. No need to do anything else, we "feed" this object as part of the cycle() function)
