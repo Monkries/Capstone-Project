@@ -12,6 +12,8 @@
 #include "Adafruit_MCP23X17.h"
 #include "Bounce2mcp.h"
 
+// BEGIN CONFIG SECTION
+
 // System Specs for Backend
 LatheHardwareInfo sysSpecs = {
   2.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
@@ -23,48 +25,68 @@ LatheHardwareInfo sysSpecs = {
 
 // Other Config Items
 #define MAX_SPINDLE_RPM 3000
-#define STEP_INTERRUPT_INTERVAL_MICROS 5 // How often (in microseconds) to call AccelStepper.run()
-#define FEEDSWITCH_INT_TEENSYPIN 17
-#define STEPPER_DRIVE_ENABLE_PIN 5
+#define BACKEND_INTERRUPT_INTERVAL_MICROS 5 // How often (in microseconds) to call TeensyLeadscrew.cycle() ( which also calls AccelStepper.run() )
 
-// BEGIN REAL CODE
+#define STEPPER_DRIVE_ENABLE_TEENSYPIN 5
+#define STEPPER_DRIVE_STEP_TEENSYPIN 4
+#define STEPPER_DRIVE_DIRECTION_TEENSYPIN 6
+
+#define SPINDLE_ENCODER_PHASEA_TEENSYPIN 3
+#define SPINDLE_ENCODER_PHASEB_TEENSYPIN 2
+#define SPINDLE_TACH_SAMPLEPERIOD_MICROS 100000
+
+/*
+TFT Display Pin Info (3/21/2022)
+SCK -> 13
+MISO -> 12
+MOSI -> 11
+LCD_CS -> 10
+SD_CS -> n/c
+RESET -> 15
+D/C -> 14
+*/
+#define TFT_SCK_TEENSYPIN 13
+#define TFT_MISO_TEENSYPIN 12
+#define TFT_MOSI_TEENSYPIN 11
+#define TFT_DISPLAYCS_TEENSYPIN 10
+#define TFT_RESET_TEENSYPIN 15
+#define TFT_DC_TEENSYPIN 14
+
+#define PANEL_ENCODER_PHASEA_TEENSYPIN 0
+#define PANEL_ENCODER_PHASEB_TEENSYPIN 1
+
+// END CONFIG, BEGIN REAL CODE
 
 // Declare spindle encoder
 // Hardware quadrature channel 1, phase A pin 3, phase B pin 2
-QuadEncoder spindleEnc(1, 3, 2, 0);
+QuadEncoder spindleEnc(1, SPINDLE_ENCODER_PHASEA_TEENSYPIN, SPINDLE_ENCODER_PHASEB_TEENSYPIN, 0);
 
 // Declare Z axis stepper
-AccelStepper zStepper(AccelStepper::DRIVER, 4, 6);
+AccelStepper zStepper(AccelStepper::DRIVER, STEPPER_DRIVE_STEP_TEENSYPIN, STEPPER_DRIVE_DIRECTION_TEENSYPIN);
 
 // Backend Electronic Leadscrew "Gearbox" lib setup
-TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, 100000);
+TeensyLeadscrew els(spindleEnc, zStepper, sysSpecs, SPINDLE_TACH_SAMPLEPERIOD_MICROS);
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-//                  CONTROL PANEL SETUP                                                       //
-// TFT Display Pin Info (3/21/2022)
-// SCK -> 13
-// MISO -> 12
-// MOSI -> 11
-// LCD_CS -> 10
-// SD_CS -> n/c
-// RESET -> 15
-// D/C -> 14
-Adafruit_ILI9341 tftObject(10, 14, 11, 13, 15, 12);
+// CONTROL PANEL HARDWARE OBJECTS
+
+// TFT Display
+Adafruit_ILI9341 tftObject(TFT_DISPLAYCS_TEENSYPIN, TFT_DC_TEENSYPIN, TFT_MOSI_TEENSYPIN, TFT_SCK_TEENSYPIN, TFT_RESET_TEENSYPIN, TFT_MISO_TEENSYPIN);
 
 // Control Panel Encoder
-// Hardware quadrature channel 2, phase A on pin 0, phase B on pin 1
-QuadEncoder panelEnc(2, 0, 1, 0);
+// Hardware quadrature channel 2, phase A, phase B
+QuadEncoder panelEnc(2, PANEL_ENCODER_PHASEA_TEENSYPIN, PANEL_ENCODER_PHASEB_TEENSYPIN, 0);
 
 // Create control panel class
 elsControlPanel cPanel(tftObject, panelEnc);
 
 // Mechanism for ensuring the stepper's run() function gets called often enough
-IntervalTimer stepTimer;
+IntervalTimer backendTimer;
 
-void stepInterruptRoutine() {
+void backendISR() {
   els.cycle();
 };
 
+// @brief Helper function that checks the feed switch state, and updates the backend accordingly
 void updateFeedSwitch() {
   if (cPanel.feedSwitch.currentState == neutral) {
     els.clutch.disengage();
@@ -77,6 +99,9 @@ void updateFeedSwitch() {
   }
 }
 
+// @brief Helper function for converting our Pitch structs to pretty human-readable strings
+// @param Input pitch to be string-ified
+// @returns e.g. "20TPI", "1.25mm", or "0.128" "
 String generateDisplayablePitch(Pitch input) {
   String outputValue;
 
@@ -106,7 +131,7 @@ void setup()
   // Initialize Z stepper
   zStepper.setMaxSpeed(100000.0);
   zStepper.setAcceleration(100000.0);
-  zStepper.setEnablePin(STEPPER_DRIVE_ENABLE_PIN);
+  zStepper.setEnablePin(STEPPER_DRIVE_ENABLE_TEENSYPIN);
 
   // Initialize control panel hardware
   cPanel.init();
@@ -118,30 +143,24 @@ void setup()
   cPanel.TFT_splashscreen();
   delay(2000);
 
-  stepTimer.begin(stepInterruptRoutine, STEP_INTERRUPT_INTERVAL_MICROS);
+  // Start the timer interrupt which calls els.cycle()
+  // This "arms" the system
+  backendTimer.begin(backendISR, BACKEND_INTERRUPT_INTERVAL_MICROS);
 }
 
+// Note that while this loop is handling input from the user, the backend is getting called with a timer interrupt every 5us
+// (so any updates we make to the backend here take virtually immediate effect)
 void loop()
-{
-  // elapsedMicros microSecSinceLastCycle = 0;
-  
-  /*
-  1. Handle button presses (units changes, rapid configuration change, or direction change) done
-  2. Handle any encoder movement (meaning pitch adjustments)
-  3. Update TFT display done
-  4. Check motor braking switch status, update backend
-  5. Check feed clutch switch status, update backend
-  6. Get spindle RPM from backend and write to display done
-  7. Check for spindle overspeed OR leadscrew overspeed (light LED for either) done minus led function
-  8. Call els.cycle() done
-  */
+{ 
+  // STEP 1: HANDLE BUTTON PRESSES (UNITS, RAPIDS, MOTOR BRAKING SWITCH)
   cPanel.updateInputs();
 
   // Update motor braking setting (the cPanel.brakingSwitch.enableMotorBraking bool is updated by updateInputs() )
   els.gearbox.enableMotorBraking = cPanel.brakingSwitch.enableMotorBraking;
 
-  /* BUTTONS
-  F1 = Units Toggle (TPI/mm/inches per rev)
+  /*
+  Button Assignments:
+  F1 = Units Toggle (TPI/mm per rev/inches per rev)
   F2 = Rapid Toggle
   F3 = Unused
   */
@@ -172,10 +191,10 @@ void loop()
     // TODO
   }
 
-  // Poll feed switch again
+  // STEP 2: POLL FEED SWITCH AND UPDATE BACKEND
   updateFeedSwitch();
 
-  // ENCODER MOVEMENTS
+  // STEP 3: CHECK FOR PANEL ENCODER MOVEMENT (PITCH ADJUSTMENT)
   int encClicks;
 
   // This is sort of janky code which doesn't allow more than 1 encoder "tick" per cycle, in order to filter out some noise
@@ -214,10 +233,10 @@ void loop()
     }
   }
 
-  // Poll feed switch again
+  // STEP 4: POLL FEED SWITCH AND UPDATE BACKEND
   updateFeedSwitch();
   
-  // Spindle RPM Display
+  // STEP 5: GET SPINDLE RPM FROM BACKEND, WRITE TO ALPHANUMERIC DISPLAY
   int spindleRPM = els.spindleTach.getRPM();
   cPanel.alphanum_writeRPM(spindleRPM);
 
@@ -229,15 +248,13 @@ void loop()
     cPanel.writeOverspeedLED(false);
   }
 
-  // Update TFT
+  // STEP 6: UPDATE TFT WITH CURRENT PITCH SETTINGS
 
   // Get the pitch in nice pretty format ignoring direction (e.g. "20TPI" or "1.75mm")
   String pitch_displayable = generateDisplayablePitch(els.gearbox.configuredPitch);
-  // Testing
-  // cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI|mm|in/rev", "Rapid Right", String(microSecSinceLastCycle)+"us, "+String(cPanel.feedSwitch.currentState)+"Br " + String(cPanel.brakingSwitch.enableMotorBraking));
   cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI|mm|in/rev", "Rapid Right", "");
 
-  // Poll feed switch again
+  // STEP 7: POLL FEED SWITCH AND UPDATE BACKEND
   updateFeedSwitch();
 }
 
