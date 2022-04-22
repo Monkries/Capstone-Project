@@ -148,9 +148,9 @@ void elsControlPanel::TFT_writeGearboxInfo(String Mode, String pitch, String but
     
     tft.setCursor(10, 5);
     tft.println(Mode);
-    tft.setCursor(10, 60);
-    tft.setTextSize(5);
-    tft.println(pitch);
+    tft.setCursor(2, 60);
+    tft.setTextSize(4);
+    tft.println(pitch +"       ");
     tft.setCursor(10, 145);
     tft.setTextSize(3);
     tft.println(button1);

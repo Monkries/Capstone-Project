@@ -123,7 +123,7 @@ void setup()
 
 void loop()
 {
-  elapsedMicros microSecSinceLastCycle = 0;
+  // elapsedMicros microSecSinceLastCycle = 0;
   
   /*
   1. Handle button presses (units changes, rapid configuration change, or direction change) done
@@ -233,7 +233,9 @@ void loop()
 
   // Get the pitch in nice pretty format ignoring direction (e.g. "20TPI" or "1.75mm")
   String pitch_displayable = generateDisplayablePitch(els.gearbox.configuredPitch);
-  cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI|mm|in/rev", "Rapid Right", String(microSecSinceLastCycle)+"us, "+String(cPanel.feedSwitch.currentState)+"Br " + String(cPanel.brakingSwitch.enableMotorBraking));
+  // Testing
+  // cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI|mm|in/rev", "Rapid Right", String(microSecSinceLastCycle)+"us, "+String(cPanel.feedSwitch.currentState)+"Br " + String(cPanel.brakingSwitch.enableMotorBraking));
+  cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI|mm|in/rev", "Rapid Right", "");
 
   // Poll feed switch again
   updateFeedSwitch();
