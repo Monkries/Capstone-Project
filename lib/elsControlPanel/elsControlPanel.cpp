@@ -34,6 +34,8 @@ void elsControlPanel::init() {
     i2cIO.begin_I2C();
     encoder.init();
     encoder.setInitConfig();
+    encoder.EncConfig.filterCount = 10;
+    encoder.EncConfig.filterSamplePeriod = 255;
   
     // MCP pin setup
     // Interrupt A pin setup
@@ -143,19 +145,23 @@ void elsControlPanel::TFT_splashscreen() {
 // button1 = units, button2 = rapid, button3 = WIP
 void elsControlPanel::TFT_writeGearboxInfo(String Mode, String pitch, String button1, String button2, String button3) { 
     tft.setTextColor(ILI9341_BLACK, ILI9341_WHITE);
-    tft.setTextSize(3.5);
     tft.setTextWrap(false);
     
+    tft.setTextSize(3.5);
     tft.setCursor(10, 5);
     tft.println(Mode);
-    tft.setCursor(2, 60);
-    tft.setTextSize(4);
+
+    tft.setCursor(10, 60);
+    tft.setTextSize(5);
     tft.println(pitch +"       ");
+    
     tft.setCursor(10, 145);
     tft.setTextSize(3);
     tft.println(button1);
+    
     tft.setCursor(10, 225);
     tft.println(button2);
+
     tft.setCursor(10, 295);
     tft.println(button3);
 

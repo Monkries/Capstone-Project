@@ -115,7 +115,7 @@ String generateDisplayablePitch(Pitch input) {
     outputValue = String(input.value, 2);
   }
   else if (input.units == in_per_rev){
-    outputUnits = "\"/REV";
+    outputUnits = "\"";
     outputValue = String(input.value, 3);
   }
 
@@ -195,22 +195,10 @@ void loop()
   updateFeedSwitch();
 
   // STEP 3: CHECK FOR PANEL ENCODER MOVEMENT (PITCH ADJUSTMENT)
-  int encClicks;
-
-  // This is sort of janky code which doesn't allow more than 1 encoder "tick" per cycle, in order to filter out some noise
-  if (cPanel.encoder.read() > 0){
-    encClicks = 1;
-    cPanel.encoder.write(0);
-  }
-  else if (cPanel.encoder.read() < 0){
-    encClicks = -1;
-    cPanel.encoder.write(0);
-  }
-  else {
-    encClicks = 0;
-  }
-
+  int encClicks = (cPanel.encoder.read() / 4);
   if (encClicks != 0) {
+    cPanel.encoder.write(0);
+
     // The increment amount of the encoder changes depending on the unit
     float increment;
     if (els.gearbox.configuredPitch.units == tpi) {
@@ -252,7 +240,7 @@ void loop()
 
   // Get the pitch in nice pretty format ignoring direction (e.g. "20TPI" or "1.75mm")
   String pitch_displayable = generateDisplayablePitch(els.gearbox.configuredPitch);
-  cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI|mm|in/rev", "Rapid Right", "");
+  cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI/mm/in", "Rapid Right", "");
 
   // STEP 7: POLL FEED SWITCH AND UPDATE BACKEND
   updateFeedSwitch();
