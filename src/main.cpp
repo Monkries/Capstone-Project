@@ -240,7 +240,7 @@ void loop()
 
   // Get the pitch in nice pretty format ignoring direction (e.g. "20TPI" or "1.75mm")
   String pitch_displayable = generateDisplayablePitch(els.gearbox.configuredPitch);
-  cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI/mm/in", "Rapid Right", "");
+  cPanel.TFT_writeGearboxInfo("", pitch_displayable, "TPI/mm/in", "", "");
 
   // STEP 7: POLL FEED SWITCH AND UPDATE BACKEND
   updateFeedSwitch();
