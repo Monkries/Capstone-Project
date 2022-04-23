@@ -48,7 +48,7 @@ struct LatheHardwareInfo {
     float encoderPulleyMultiplier; // e.g. if the encoder runs at 2X spindle speed, make this 2
     unsigned int encoderTicksPerRev; // Ticks per revolution of the encoder (for a 2000PPR encoder, this is 8000)
     unsigned int stepsPerRev; // Steps per revolution on the stepper (including microstepping)
-    unsigned int maxStepRate; // Maximum possible speed of the stepper (we'll use this to give an overspeed warning)
+    unsigned int warningStepRate; // A "soft maximum" speed for the stepper (used for overspeed warning)
     Pitch leadscrewPitch; // The pitch of the Z leadscrew on the machine
 };
 
@@ -96,6 +96,9 @@ class TeensyLeadscrew {
     // @brief Feed clutch, patterned after the HLV-H. Call .engageForward(), .engageReverse(), or .disengage() to control it.
     SynchronousBidirectionalClutch clutch;
 
+    // @brief If true, it means the leadscrew speed has hit the governed limit (so synchronization is lost)
+    bool leadscrewOverspeedAlarmActive = false;
+
     private:
     /*
     @brief Given encoder movement, and the current settings in TeensyLeadscrew::gearbox, find number of steps to move, IGNORING ANY CLUTCH ACTION/DIRECTION
@@ -106,6 +109,10 @@ class TeensyLeadscrew {
 
     // @brief This is a helper class to make sure we keep track of fractional steps across cycles
     IntegerStepHelper queuedMotorSteps;
+
+    // @brief Keeps track of time since the motor came to a stop. We wait 100ms before we disable the brake, to keep from constantly enabling/disabling at slower speeds.
+    elapsedMillis timeSinceMotorStopped;
+    int previousDistanceToGo = 0;
 };
 
 #endif

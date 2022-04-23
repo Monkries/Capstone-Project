@@ -13,27 +13,28 @@
 #include "Bounce2mcp.h"
 
 // BEGIN CONFIG SECTION
-
-// System Specs for Backend
-LatheHardwareInfo sysSpecs = {
-  2.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
-  8000, // encoderTicksPerRev
-  2000, // stepsPerRev : usable steps per rev, including microsteps
-  1000000, // maxStepRate : maximum allowable rate for stepper motor (steps per sec)
-  {20, tpi, leftHandThread_feedRight}, // leadscrewPitch : a Pitch struct with leadscrew specifications
-};
-
-// Other Config Items
-#define MAX_SPINDLE_RPM 3000
 #define BACKEND_INTERRUPT_INTERVAL_MICROS 5 // How often (in microseconds) to call TeensyLeadscrew.cycle() ( which also calls AccelStepper.run() )
 
 #define STEPPER_DRIVE_ENABLE_TEENSYPIN 5
 #define STEPPER_DRIVE_STEP_TEENSYPIN 4
 #define STEPPER_DRIVE_DIRECTION_TEENSYPIN 6
+#define STEPPER_WARNING_SPEED 40000
+#define STEPPER_MAX_SPEED 45000
+#define STEPPER_MAX_ACCELERATION 500000
+#define STEPPER_STEPS_PER_REV 2000
 
 #define SPINDLE_ENCODER_PHASEA_TEENSYPIN 3
 #define SPINDLE_ENCODER_PHASEB_TEENSYPIN 2
-#define SPINDLE_TACH_SAMPLEPERIOD_MICROS 100000
+#define SPINDLE_TACH_SAMPLEPERIOD_MICROS 4000
+
+// System Specs object for Backend
+LatheHardwareInfo sysSpecs = {
+  2.0, // encoderPulleyMultiplier : e.g. if the encoder runs at 2X spindle speed, make this 2
+  8000, // encoderTicksPerRev
+  STEPPER_STEPS_PER_REV, // stepsPerRev : usable steps per rev, including microsteps
+  STEPPER_WARNING_SPEED, // warningStepRate : soft maximum for stepper motor (steps per sec), used for overspeed warning
+  {20, tpi, leftHandThread_feedRight}, // leadscrewPitch : a Pitch struct with leadscrew specifications
+};
 
 /*
 TFT Display Pin Info (3/21/2022)
@@ -86,16 +87,18 @@ void backendISR() {
   els.cycle();
 };
 
-// @brief Helper function that checks the feed switch state, and updates the backend accordingly
+// @brief Helper function that checks the feed switch state, and updates the backend accordingly (except in backend overspeed condition)
 void updateFeedSwitch() {
-  if (cPanel.feedSwitch.currentState == neutral) {
-    els.clutch.disengage();
-  }
-  else if (cPanel.feedSwitch.currentState == left_towardHeadstock) {
-    els.clutch.engageForward();
-  }
-  else if (cPanel.feedSwitch.currentState == right_towardTailstock) {
-    els.clutch.engageReverse();
+  if (els.leadscrewOverspeedAlarmActive == false) {
+    if (cPanel.feedSwitch.currentState == neutral) {
+      els.clutch.disengage();
+    }
+    else if (cPanel.feedSwitch.currentState == left_towardHeadstock) {
+      els.clutch.engageForward();
+    }
+    else if (cPanel.feedSwitch.currentState == right_towardTailstock) {
+      els.clutch.engageReverse();
+    }
   }
 }
 
@@ -129,8 +132,8 @@ void setup()
   spindleEnc.init();
 
   // Initialize Z stepper
-  zStepper.setMaxSpeed(100000.0);
-  zStepper.setAcceleration(100000.0);
+  zStepper.setMaxSpeed(STEPPER_MAX_SPEED);
+  zStepper.setAcceleration(STEPPER_MAX_ACCELERATION);
   zStepper.setEnablePin(STEPPER_DRIVE_ENABLE_TEENSYPIN);
 
   // Initialize control panel hardware
@@ -229,7 +232,7 @@ void loop()
   cPanel.alphanum_writeRPM(spindleRPM);
 
   // Handle overspeed indicator
-  if (spindleRPM > MAX_SPINDLE_RPM || els.zStepper.speed() > (sysSpecs.maxStepRate-100)) {
+  if (els.zStepper.speed() > (sysSpecs.warningStepRate)) {
     cPanel.writeOverspeedLED(true);
   }
   else {

@@ -48,17 +48,47 @@ void TeensyLeadscrew::cycle() {
 
     // BUSINESS
 
-    // Encoder --> calculateMotorSteps --> clutch.move
-    // Spindle --> gearbox --------------> feed clutch
-    queuedMotorSteps.totalValue += clutch.moveInput( calculateMotorSteps(relativeEncoderMovement) );
+    // 1. Overspeed Safety Handling
 
-    zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
+    // Should we start a new leadscrewOverspeedAlarm ?
+    if (zStepper.speed() > sysInfo.warningStepRate) {
+        leadscrewOverspeedAlarmActive = true;
+    }
+    // Should we reset the alarm (if the spindle has stopped)?
+    else if (leadscrewOverspeedAlarmActive == true && spindleTach.getRPM() == 0) {
+        leadscrewOverspeedAlarmActive = false;
+    }
+
+    // 2. Actual Leadscrew Math
+    if (leadscrewOverspeedAlarmActive == true) {
+        /* Overspeed Condition:
+        If the leadscrewOverspeed alarm has been tripped, we want to stop the carriage.
+        Yes, this could mess up a part and maybe even break a tool, but it will prevent much more dangerous crashes/behavior.
+        */
+       clutch.disengage();
+    }
+    else {
+        // Normal operating condition
+        // Encoder --> calculateMotorSteps --> clutch.move
+        // Spindle --> gearbox --------------> feed clutch
+        queuedMotorSteps.totalValue += clutch.moveInput( calculateMotorSteps(relativeEncoderMovement) );
+
+        zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
+    }
 
     // Actually move the motor
 
     // If the motor doesn't have any steps to go, AND motor braking at idle has been disabled, then disable the drive
     if (zStepper.distanceToGo() == 0 && gearbox.enableMotorBraking == false) {
-        zStepper.disableOutputs();
+        if (previousDistanceToGo != 0) {
+            // If the motor has JUST come to a stop
+            timeSinceMotorStopped = 0;
+        }
+
+        if (timeSinceMotorStopped > 100) {
+            // If the motor has been stopped for more than 100ms, it's safe to disable the brake
+            zStepper.disableOutputs();
+        }
     }
     else {
         // Otherwise, call zStepper.run()
@@ -66,6 +96,7 @@ void TeensyLeadscrew::cycle() {
         zStepper.enableOutputs();
         zStepper.run();
     }
+    previousDistanceToGo = zStepper.distanceToGo();
 }
 
 // Given the class's current gearbox config
