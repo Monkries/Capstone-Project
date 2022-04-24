@@ -76,19 +76,11 @@ void TeensyLeadscrew::cycle() {
         zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
     }
 
-    // Actually move the motor
+    // 3. Motor Movement
 
     // If the motor doesn't have any steps to go, AND motor braking at idle has been disabled, then disable the drive
-    if (zStepper.distanceToGo() == 0 && gearbox.enableMotorBraking == false) {
-        if (previousDistanceToGo != 0) {
-            // If the motor has JUST come to a stop
-            timeSinceMotorStopped = 0;
-        }
-
-        if (timeSinceMotorStopped > 100) {
-            // If the motor has been stopped for more than 100ms, it's safe to disable the brake
-            zStepper.disableOutputs();
-        }
+    if ( gearbox.enableMotorBraking == false && zStepper.distanceToGo() == 0) {
+        zStepper.disableOutputs();
     }
     else {
         // Otherwise, call zStepper.run()
@@ -96,7 +88,6 @@ void TeensyLeadscrew::cycle() {
         zStepper.enableOutputs();
         zStepper.run();
     }
-    previousDistanceToGo = zStepper.distanceToGo();
 }
 
 // Given the class's current gearbox config

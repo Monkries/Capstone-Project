@@ -109,10 +109,6 @@ class TeensyLeadscrew {
 
     // @brief This is a helper class to make sure we keep track of fractional steps across cycles
     IntegerStepHelper queuedMotorSteps;
-
-    // @brief Keeps track of time since the motor came to a stop. We wait 100ms before we disable the brake, to keep from constantly enabling/disabling at slower speeds.
-    elapsedMillis timeSinceMotorStopped;
-    int previousDistanceToGo = 0;
 };
 
 #endif
