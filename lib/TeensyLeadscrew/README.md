@@ -29,7 +29,7 @@ Here's a pseudo-controls-diagram of the model:
 ```
                                          --------------> [Forward Clutch Input Shaft Angle]---(X)---
                                          |                                                          |
-Input (probably from spindle encoder) ---|                                                          |---> [Output Shaft Angle (stepper motor)]
+Input (probably from spindle encoder) ---|                                                          |---> [Output Shaft Angle (to threading gearbox)]
                                          |                                                          |
                                          ----> [-1] ---> [Reverse Clutch Input Shaft      ]---( )---
 ```
