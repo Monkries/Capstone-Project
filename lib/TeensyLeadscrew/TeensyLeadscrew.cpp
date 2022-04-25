@@ -23,6 +23,8 @@ zStepper(arg_zStepper) // Same as above. If you don't have this, it tries to cop
         gearbox.configuredPitch.value = 0.001; // Default to 0.001"/REV feed rate, feeding left
         gearbox.configuredPitch.units = in_per_rev;
         gearbox.configuredPitch.direction = rightHandThread_feedLeft;
+        
+        clutch = SynchronousBidirectionalClutch(sysInfo.encoderTicksPerRev*sysInfo.encoderPulleyMultiplier, 5); // Create clutch object with SPINDLE ticks per rev and locking tolerance
 }
 
 void TeensyLeadscrew::init() {
@@ -69,9 +71,11 @@ void TeensyLeadscrew::cycle() {
     }
     else {
         // Normal operating condition
-        // Encoder --> calculateMotorSteps --> clutch.move
-        // Spindle --> gearbox --------------> feed clutch
-        queuedMotorSteps.totalValue += clutch.moveInput( calculateMotorSteps(relativeEncoderMovement) );
+
+        // Spindle --> Single-Tooth Clutch --> Threading Gearbox
+        // Note that for the clutch, encoder ticks become spindle ticks automatically, because it knows how many encoder ticks make one spindle revolution
+        // So even though we feed in encoder ticks, from an angular perspective, the clutch is looking at the spindle, not the encoder
+        queuedMotorSteps.totalValue += calculateMotorSteps( clutch.moveInput(relativeEncoderMovement) );
 
         zStepper.move((long)queuedMotorSteps.popIntegerPart()+zStepper.distanceToGo());
     }
