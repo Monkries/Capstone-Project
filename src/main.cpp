@@ -56,7 +56,7 @@ D/C -> 14
 #define PANEL_ENCODER_PHASEA_TEENSYPIN 0
 #define PANEL_ENCODER_PHASEB_TEENSYPIN 1
 
-// END CONFIG, BEGIN REAL CODE
+// END CONFIG
 
 // Declare spindle encoder
 // Hardware quadrature channel 1, phase A pin 3, phase B pin 2
@@ -191,7 +191,7 @@ void loop()
 
   // Handle F2, Rapid Toggle
   if (cPanel.function2Btn.debouncedButton.fell()) {
-    // TODO
+    // WIP
   }
 
   // STEP 2: POLL FEED SWITCH AND UPDATE BACKEND
